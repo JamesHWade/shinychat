@@ -122,7 +122,7 @@ chat_ui <- function(
       rlang::list2(
         `data-role` = role,
         content = ui[["html"]],
-        icon = if (!is.null(icon_assistant)) as.character(icon_assistant),
+        icon = if (!is.null(icon_assistant) && role == "assistant") as.character(icon_assistant),
         ui[["dependencies"]],
       )
     )

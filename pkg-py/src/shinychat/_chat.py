@@ -1775,13 +1775,17 @@ def chat_ui(
         messages = []
     for x in messages:
         msg = message_content(x)
+        attrs = {
+            "content": msg.content,
+            "data-role": msg.role,
+        }
+        if msg.role == "assistant" and icon_attr is not None:
+            attrs["icon"] = icon_attr
         message_tags.append(
             Tag(
                 "shiny-chat-message",
                 *msg.html_deps,
-                content=msg.content,
-                icon=icon_attr,
-                data_role=msg.role,
+                **attrs,
             )
         )
 
