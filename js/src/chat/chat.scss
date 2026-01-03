@@ -185,16 +185,24 @@ shiny-chat-message {
 
   .message-action-menu {
     position: absolute;
-    bottom: 100%;
     right: 0;
     z-index: 1000;
     min-width: 160px;
     padding: 0.25rem 0;
-    margin-bottom: 0.25rem;
     background-color: var(--bs-body-bg, #fff);
     border: var(--shiny-chat-border);
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+    &--above {
+      bottom: 100%;
+      margin-bottom: 0.25rem;
+    }
+
+    &--below {
+      top: 100%;
+      margin-top: 0.25rem;
+    }
   }
 
   .message-action-menu-item {

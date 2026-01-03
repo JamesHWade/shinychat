@@ -1,7 +1,6 @@
 import { LitElement, html, nothing } from "lit"
 import { unsafeHTML } from "lit-html/directives/unsafe-html.js"
 import { property, state } from "lit/decorators.js"
-import ClipboardJS from "clipboard"
 
 import {
   LightElement,
@@ -122,8 +121,7 @@ class ChatMessage extends LightElement {
   @state() private _copySuccess = false
   @state() private _feedbackGiven: "positive" | "negative" | null = null
   @state() private _showMoreMenu = false
-
-  private _clipboard: ClipboardJS | null = null
+  @state() private _menuDirection: "above" | "below" = "above"
 
   render() {
     const icon = this.#messageIcon()
@@ -283,7 +281,11 @@ class ChatMessage extends LightElement {
             </button>
             ${this._showMoreMenu
               ? html`
-                  <div class="message-action-menu" @click=${this.#onMenuClick}>
+                  <div
+                    class="message-action-menu message-action-menu--${this
+                      ._menuDirection}"
+                    @click=${this.#onMenuClick}
+                  >
                     <button
                       type="button"
                       class="message-action-menu-item"
@@ -328,23 +330,28 @@ class ChatMessage extends LightElement {
   #onCopyClick(): void {
     // Use Clipboard API for copy
     const text = this.#getTextContent()
-    navigator.clipboard.writeText(text).then(() => {
-      this._copySuccess = true
-      setTimeout(() => {
-        this._copySuccess = false
-      }, 2000)
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        this._copySuccess = true
+        setTimeout(() => {
+          this._copySuccess = false
+        }, 2000)
 
-      this.dispatchEvent(
-        new CustomEvent("shiny-chat-message-copy", {
-          detail: {
-            messageIndex: this.#getMessageIndex(),
-            content: this.content,
-          },
-          bubbles: true,
-          composed: true,
-        }),
-      )
-    })
+        this.dispatchEvent(
+          new CustomEvent("shiny-chat-message-copy", {
+            detail: {
+              messageIndex: this.#getMessageIndex(),
+              content: this.content,
+            },
+            bubbles: true,
+            composed: true,
+          }),
+        )
+      })
+      .catch((err) => {
+        console.warn("Failed to copy message to clipboard:", err)
+      })
   }
 
   #onThumbsUpClick(): void {
@@ -407,10 +414,20 @@ class ChatMessage extends LightElement {
     )
   }
 
-  #onMoreClick(): void {
+  #onMoreClick(e: MouseEvent): void {
     this._showMoreMenu = !this._showMoreMenu
 
     if (this._showMoreMenu) {
+      // Determine if menu should open above or below based on available space
+      const button = e.currentTarget as HTMLElement
+      const rect = button.getBoundingClientRect()
+      const spaceAbove = rect.top
+      const spaceBelow = window.innerHeight - rect.bottom
+      const menuHeight = 100 // Approximate menu height
+
+      // Prefer opening above unless there's not enough space
+      this._menuDirection = spaceAbove >= menuHeight ? "above" : "below"
+
       // Close menu when clicking outside
       const closeMenu = (e: MouseEvent) => {
         if (!this.contains(e.target as Node)) {
@@ -428,12 +445,24 @@ class ChatMessage extends LightElement {
     const action = target.dataset.action
 
     if (action === "copy-markdown") {
-      navigator.clipboard.writeText(this.content)
-      this._showMoreMenu = false
+      navigator.clipboard
+        .writeText(this.content)
+        .catch((err) => {
+          console.warn("Failed to copy markdown to clipboard:", err)
+        })
+        .finally(() => {
+          this._showMoreMenu = false
+        })
     } else if (action === "copy-text") {
       const text = this.#getTextContent()
-      navigator.clipboard.writeText(text)
-      this._showMoreMenu = false
+      navigator.clipboard
+        .writeText(text)
+        .catch((err) => {
+          console.warn("Failed to copy text to clipboard:", err)
+        })
+        .finally(() => {
+          this._showMoreMenu = false
+        })
     }
   }
 
@@ -993,19 +1022,23 @@ class ChatContainer extends LightElement {
 
   // Message action event handlers - forward to Shiny inputs
   #onMessageCopy(event: CustomEvent<MessageActionEvent>): void {
-    if (!window.Shiny) return
-    window.Shiny.setInputValue!(
+    if (!window.Shiny?.setInputValue) {
+      console.warn("Shiny not available, cannot send message copy event")
+      return
+    }
+    window.Shiny.setInputValue(
       `${this.baseInputId}_message_copy`,
       event.detail,
-      {
-        priority: "event",
-      },
+      { priority: "event" },
     )
   }
 
   #onMessageFeedback(event: CustomEvent<FeedbackEvent>): void {
-    if (!window.Shiny) return
-    window.Shiny.setInputValue!(
+    if (!window.Shiny?.setInputValue) {
+      console.warn("Shiny not available, cannot send message feedback event")
+      return
+    }
+    window.Shiny.setInputValue(
       `${this.baseInputId}_message_feedback`,
       event.detail,
       { priority: "event" },
@@ -1013,8 +1046,11 @@ class ChatContainer extends LightElement {
   }
 
   #onMessageRegenerate(event: CustomEvent<MessageActionEvent>): void {
-    if (!window.Shiny) return
-    window.Shiny.setInputValue!(
+    if (!window.Shiny?.setInputValue) {
+      console.warn("Shiny not available, cannot send message regenerate event")
+      return
+    }
+    window.Shiny.setInputValue(
       `${this.baseInputId}_message_regenerate`,
       event.detail,
       { priority: "event" },
@@ -1022,13 +1058,14 @@ class ChatContainer extends LightElement {
   }
 
   #onMessageShare(event: CustomEvent<MessageActionEvent>): void {
-    if (!window.Shiny) return
-    window.Shiny.setInputValue!(
+    if (!window.Shiny?.setInputValue) {
+      console.warn("Shiny not available, cannot send message share event")
+      return
+    }
+    window.Shiny.setInputValue(
       `${this.baseInputId}_message_share`,
       event.detail,
-      {
-        priority: "event",
-      },
+      { priority: "event" },
     )
   }
 }
