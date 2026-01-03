@@ -118,9 +118,123 @@ shiny-chat-message {
     }
   }
 
-  /* Vertically center the 2nd column (message content) */
-  shiny-markdown-stream {
-    align-self: center;
+  .message-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-self: center; /* Vertically center the wrapper in the grid cell */
+  }
+
+  // Message action bar
+  .message-actions {
+    display: flex;
+    gap: 0.25rem;
+    opacity: 0;
+    transition: opacity 0.15s ease-in-out;
+  }
+
+  &:hover .message-actions,
+  &:focus-within .message-actions {
+    opacity: 1;
+  }
+
+  .message-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background-color: transparent;
+    color: var(--bs-secondary-color, #6c757d);
+    cursor: pointer;
+    transition:
+      background-color 0.15s ease-in-out,
+      color 0.15s ease-in-out;
+
+    &:hover {
+      background-color: var(--bs-tertiary-bg, #f8f9fa);
+      color: var(--bs-body-color, #212529);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--bs-primary, #007bc2);
+      outline-offset: 1px;
+    }
+
+    &.success {
+      color: var(--bs-success, #198754);
+    }
+
+    &.active {
+      color: var(--bs-primary, #007bc2);
+      background-color: rgba(var(--bs-primary-rgb, 0, 123, 194), 0.1);
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  .message-action-more-wrapper {
+    position: relative;
+  }
+
+  .message-action-menu {
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    z-index: 1000;
+    min-width: 160px;
+    padding: 0.25rem 0;
+    margin-bottom: 0.25rem;
+    background-color: var(--bs-body-bg, #fff);
+    border: var(--shiny-chat-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .message-action-menu-item {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border: none;
+    background-color: transparent;
+    color: var(--bs-body-color, #212529);
+    text-align: left;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+
+    &:hover {
+      background-color: var(--bs-tertiary-bg, #f8f9fa);
+    }
+
+    &:focus-visible {
+      outline: none;
+      background-color: var(--bs-tertiary-bg, #f8f9fa);
+    }
+  }
+}
+
+// Dark theme support
+[data-bs-theme="dark"] {
+  shiny-chat-message {
+    .message-action-btn:hover {
+      background-color: var(--bs-tertiary-bg, #2b3035);
+    }
+
+    .message-action-menu {
+      background-color: var(--bs-body-bg, #212529);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .message-action-menu-item:hover {
+      background-color: var(--bs-tertiary-bg, #2b3035);
+    }
   }
 }
 
