@@ -24,6 +24,7 @@ type MessageAttrs = {
   content_type: ContentType
   icon?: string
   operation: "append" | null
+  message_actions?: string
 }
 
 type Message = Omit<MessageAttrs, "data_role"> & {
@@ -99,12 +100,24 @@ const ICONS = {
   more: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/></svg>',
 }
 
+// Valid action names for message action buttons
+type MessageAction = "copy" | "feedback" | "regenerate" | "share" | "more"
+const ALL_MESSAGE_ACTIONS: MessageAction[] = [
+  "copy",
+  "feedback",
+  "regenerate",
+  "share",
+  "more",
+]
+
 class ChatMessage extends LightElement {
   @property() content = "..."
   @property({ attribute: "content-type" }) contentType: ContentType = "markdown"
   @property({ type: Boolean, reflect: true }) streaming = false
   @property() icon = ""
   @property({ attribute: "data-role" }) role: "user" | "assistant" = "assistant"
+  // Comma-separated list of enabled actions, "all", "none", or empty (defaults to none)
+  @property({ attribute: "message-actions" }) messageActions = ""
 
   @state() private _copySuccess = false
   @state() private _feedbackGiven: "positive" | "negative" | null = null
@@ -149,6 +162,15 @@ class ChatMessage extends LightElement {
     return isEmpty ? ICONS.dots_fade : this.icon || ICONS.robot
   }
 
+  // Check if a specific action is enabled based on messageActions attribute
+  #isActionEnabled(action: MessageAction): boolean {
+    const actionsAttr = this.messageActions.trim().toLowerCase()
+    if (!actionsAttr || actionsAttr === "none") return false
+    if (actionsAttr === "all") return true
+    const enabledActions = actionsAttr.split(",").map((a) => a.trim())
+    return enabledActions.includes(action)
+  }
+
   #messageActions() {
     // Only show actions for assistant messages and when not streaming
     if (this.role !== "assistant" || this.streaming) {
@@ -160,98 +182,133 @@ class ChatMessage extends LightElement {
       return nothing
     }
 
+    // Don't show if no actions are enabled
+    const hasAnyAction = ALL_MESSAGE_ACTIONS.some((a) =>
+      this.#isActionEnabled(a),
+    )
+    if (!hasAnyAction) {
+      return nothing
+    }
+
     const copyIcon = this._copySuccess ? ICONS.check : ICONS.copy
     const copyTitle = this._copySuccess ? "Copied!" : "Copy to clipboard"
 
-    return html`
-      <div class="message-actions">
-        <button
-          type="button"
-          class="message-action-btn ${this._copySuccess ? "success" : ""}"
-          title=${copyTitle}
-          aria-label=${copyTitle}
-          data-action="copy"
-          @click=${this.#onCopyClick}
-        >
-          ${unsafeHTML(copyIcon)}
-        </button>
-        <button
-          type="button"
-          class="message-action-btn ${this._feedbackGiven === "positive"
-            ? "active"
-            : ""}"
-          title="Good response"
-          aria-label="Good response"
-          data-action="thumbs-up"
-          @click=${this.#onThumbsUpClick}
-        >
-          ${unsafeHTML(ICONS.thumbs_up)}
-        </button>
-        <button
-          type="button"
-          class="message-action-btn ${this._feedbackGiven === "negative"
-            ? "active"
-            : ""}"
-          title="Bad response"
-          aria-label="Bad response"
-          data-action="thumbs-down"
-          @click=${this.#onThumbsDownClick}
-        >
-          ${unsafeHTML(ICONS.thumbs_down)}
-        </button>
-        <button
-          type="button"
-          class="message-action-btn"
-          title="Regenerate response"
-          aria-label="Regenerate response"
-          data-action="regenerate"
-          @click=${this.#onRegenerateClick}
-        >
-          ${unsafeHTML(ICONS.regenerate)}
-        </button>
-        <button
-          type="button"
-          class="message-action-btn"
-          title="Share"
-          aria-label="Share"
-          data-action="share"
-          @click=${this.#onShareClick}
-        >
-          ${unsafeHTML(ICONS.share)}
-        </button>
-        <div class="message-action-more-wrapper">
+    const copyButton = this.#isActionEnabled("copy")
+      ? html`
+          <button
+            type="button"
+            class="message-action-btn ${this._copySuccess ? "success" : ""}"
+            title=${copyTitle}
+            aria-label=${copyTitle}
+            data-action="copy"
+            @click=${this.#onCopyClick}
+          >
+            ${unsafeHTML(copyIcon)}
+          </button>
+        `
+      : nothing
+
+    const feedbackButtons = this.#isActionEnabled("feedback")
+      ? html`
+          <button
+            type="button"
+            class="message-action-btn ${this._feedbackGiven === "positive"
+              ? "active"
+              : ""}"
+            title="Good response"
+            aria-label="Good response"
+            data-action="thumbs-up"
+            @click=${this.#onThumbsUpClick}
+          >
+            ${unsafeHTML(ICONS.thumbs_up)}
+          </button>
+          <button
+            type="button"
+            class="message-action-btn ${this._feedbackGiven === "negative"
+              ? "active"
+              : ""}"
+            title="Bad response"
+            aria-label="Bad response"
+            data-action="thumbs-down"
+            @click=${this.#onThumbsDownClick}
+          >
+            ${unsafeHTML(ICONS.thumbs_down)}
+          </button>
+        `
+      : nothing
+
+    const regenerateButton = this.#isActionEnabled("regenerate")
+      ? html`
           <button
             type="button"
             class="message-action-btn"
-            title="More options"
-            aria-label="More options"
-            aria-expanded=${this._showMoreMenu}
-            data-action="more"
-            @click=${this.#onMoreClick}
+            title="Regenerate response"
+            aria-label="Regenerate response"
+            data-action="regenerate"
+            @click=${this.#onRegenerateClick}
           >
-            ${unsafeHTML(ICONS.more)}
+            ${unsafeHTML(ICONS.regenerate)}
           </button>
-          ${this._showMoreMenu
-            ? html`
-                <div class="message-action-menu" @click=${this.#onMenuClick}>
-                  <button
-                    type="button"
-                    class="message-action-menu-item"
-                    data-action="copy-markdown"
-                  >
-                    Copy as Markdown
-                  </button>
-                  <button
-                    type="button"
-                    class="message-action-menu-item"
-                    data-action="copy-text"
-                  >
-                    Copy as plain text
-                  </button>
-                </div>
-              `
-            : nothing}
-        </div>
+        `
+      : nothing
+
+    const shareButton = this.#isActionEnabled("share")
+      ? html`
+          <button
+            type="button"
+            class="message-action-btn"
+            title="Share"
+            aria-label="Share"
+            data-action="share"
+            @click=${this.#onShareClick}
+          >
+            ${unsafeHTML(ICONS.share)}
+          </button>
+        `
+      : nothing
+
+    const moreButton = this.#isActionEnabled("more")
+      ? html`
+          <div class="message-action-more-wrapper">
+            <button
+              type="button"
+              class="message-action-btn"
+              title="More options"
+              aria-label="More options"
+              aria-expanded=${this._showMoreMenu}
+              data-action="more"
+              @click=${this.#onMoreClick}
+            >
+              ${unsafeHTML(ICONS.more)}
+            </button>
+            ${this._showMoreMenu
+              ? html`
+                  <div class="message-action-menu" @click=${this.#onMenuClick}>
+                    <button
+                      type="button"
+                      class="message-action-menu-item"
+                      data-action="copy-markdown"
+                    >
+                      Copy as Markdown
+                    </button>
+                    <button
+                      type="button"
+                      class="message-action-menu-item"
+                      data-action="copy-text"
+                    >
+                      Copy as plain text
+                    </button>
+                  </div>
+                `
+              : nothing}
+          </div>
+        `
+      : nothing
+
+    return html`
+      <div class="message-actions">
+        ${copyButton} ${feedbackButtons} ${regenerateButton} ${shareButton}
+        ${moreButton}
       </div>
     `
   }
@@ -603,6 +660,7 @@ class ChatInput extends LightElement {
 
 class ChatContainer extends LightElement {
   @property({ attribute: "icon-assistant" }) iconAssistant = ""
+  @property({ attribute: "message-actions" }) messageActions = ""
   inputSentinelObserver?: IntersectionObserver
   _attachEventListenersOnReconnect = false
   _boundOnExternalLinkClick!: (e: MouseEvent) => void
@@ -618,6 +676,12 @@ class ChatContainer extends LightElement {
   private get lastMessage(): ChatMessage | null {
     const last = this.messages.lastElementChild
     return last ? (last as ChatMessage) : null
+  }
+
+  // Get base input ID by stripping "_user_input" suffix from the input's ID
+  private get baseInputId(): string {
+    const inputId = this.input.id
+    return inputId.replace(/_user_input$/, "")
   }
 
   render() {
@@ -685,6 +749,17 @@ class ChatContainer extends LightElement {
     this.addEventListener("keydown", this.#onInputSuggestionKeydown)
     // Add external link handler to the window so that it's easier for users to disable
     window.addEventListener("click", this._boundOnExternalLinkClick)
+    // Message action events
+    this.addEventListener("shiny-chat-message-copy", this.#onMessageCopy)
+    this.addEventListener(
+      "shiny-chat-message-feedback",
+      this.#onMessageFeedback,
+    )
+    this.addEventListener(
+      "shiny-chat-message-regenerate",
+      this.#onMessageRegenerate,
+    )
+    this.addEventListener("shiny-chat-message-share", this.#onMessageShare)
   }
 
   disconnectedCallback(): void {
@@ -712,6 +787,17 @@ class ChatContainer extends LightElement {
     this.removeEventListener("click", this.#onInputSuggestionClick)
     this.removeEventListener("keydown", this.#onInputSuggestionKeydown)
     window.removeEventListener("click", this._boundOnExternalLinkClick)
+    // Message action events
+    this.removeEventListener("shiny-chat-message-copy", this.#onMessageCopy)
+    this.removeEventListener(
+      "shiny-chat-message-feedback",
+      this.#onMessageFeedback,
+    )
+    this.removeEventListener(
+      "shiny-chat-message-regenerate",
+      this.#onMessageRegenerate,
+    )
+    this.removeEventListener("shiny-chat-message-share", this.#onMessageShare)
   }
 
   // When user submits input, append it to the chat, and add a loading message
@@ -745,6 +831,11 @@ class ChatContainer extends LightElement {
     }
 
     const messageAttrs: MessageAttrs = { data_role: role, ...restMessage }
+
+    // Pass message-actions from container to message
+    if (this.messageActions) {
+      messageAttrs.message_actions = this.messageActions
+    }
 
     const msg = createElement(TAG_NAME, messageAttrs)
     this.messages.appendChild(msg)
@@ -898,6 +989,47 @@ class ChatContainer extends LightElement {
         // If dialog fails for any reason, fall back to opening the link directly
         window.open(linkEl.href, "_blank", "noopener,noreferrer")
       })
+  }
+
+  // Message action event handlers - forward to Shiny inputs
+  #onMessageCopy(event: CustomEvent<MessageActionEvent>): void {
+    if (!window.Shiny) return
+    window.Shiny.setInputValue!(
+      `${this.baseInputId}_message_copy`,
+      event.detail,
+      {
+        priority: "event",
+      },
+    )
+  }
+
+  #onMessageFeedback(event: CustomEvent<FeedbackEvent>): void {
+    if (!window.Shiny) return
+    window.Shiny.setInputValue!(
+      `${this.baseInputId}_message_feedback`,
+      event.detail,
+      { priority: "event" },
+    )
+  }
+
+  #onMessageRegenerate(event: CustomEvent<MessageActionEvent>): void {
+    if (!window.Shiny) return
+    window.Shiny.setInputValue!(
+      `${this.baseInputId}_message_regenerate`,
+      event.detail,
+      { priority: "event" },
+    )
+  }
+
+  #onMessageShare(event: CustomEvent<MessageActionEvent>): void {
+    if (!window.Shiny) return
+    window.Shiny.setInputValue!(
+      `${this.baseInputId}_message_share`,
+      event.detail,
+      {
+        priority: "event",
+      },
+    )
   }
 }
 

@@ -32,6 +32,22 @@ chat_deps <- function() {
 #' `id="my_chat"`, user input will be at `input$my_chat_user_input`), and use
 #' [chat_append()] to append messages to the chat.
 #'
+#' # Message action events
+#'
+#' When `message_actions` is enabled, clicking action buttons on messages will
+#' trigger the following inputs (replace `ID` with your chat ID):
+#'
+#' * `input$ID_message_copy` - Triggered when copy button is clicked.
+#'   Contains `messageIndex` (int) and `content` (string).
+#' * `input$ID_message_feedback` - Triggered when thumbs up/down is clicked.
+#'   Contains `messageIndex`, `content`, and `feedback` ("positive" or "negative").
+#' * `input$ID_message_regenerate` - Triggered when regenerate button is clicked.
+#'   Contains `messageIndex` and `content`.
+#' * `input$ID_message_share` - Triggered when share button is clicked.
+#'   Contains `messageIndex` and `content`.
+#'
+#' Use `observeEvent(input$my_chat_message_feedback, ...)` to respond to these events.
+#'
 #' @param id The ID of the chat element
 #' @param ... Extra HTML attributes to include on the chat element
 #' @param messages A list of messages to prepopulate the chat with. Each
@@ -57,6 +73,15 @@ chat_deps <- function() {
 #' @param icon_assistant The icon to use for the assistant chat messages.
 #'   Can be HTML or a tag in the form of [htmltools::HTML()] or
 #'   [htmltools::tags()]. If `None`, a default robot icon is used.
+#' @param message_actions Controls which action buttons appear on assistant
+#'   messages. Can be:
+#'
+#'   * `NULL` (default) - No action buttons shown.
+#'   * `TRUE` or `"all"` - Show all action buttons (copy, feedback, regenerate,
+#'     share, more).
+#'   * `FALSE` or `"none"` - No action buttons shown.
+#'   * A character vector of action names - Show only the specified actions.
+#'     Valid names are: "copy", "feedback", "regenerate", "share", "more".
 #' @returns A Shiny tag object, suitable for inclusion in a Shiny UI
 #'
 #' @examplesIf interactive()
@@ -94,11 +119,23 @@ chat_ui <- function(
   width = "min(680px, 100%)",
   height = "auto",
   fill = TRUE,
-  icon_assistant = NULL
+  icon_assistant = NULL,
+  message_actions = NULL
 ) {
   attrs <- rlang::list2(...)
   if (!all(nzchar(rlang::names2(attrs)))) {
     rlang::abort("All arguments in ... must be named.")
+  }
+
+  # Process message_actions to a string attribute
+  message_actions_attr <- NULL
+  if (isTRUE(message_actions) || identical(message_actions, "all")) {
+    message_actions_attr <- "all"
+  } else if (isFALSE(message_actions) || identical(message_actions, "none")) {
+    message_actions_attr <- "none"
+  } else if (!is.null(message_actions)) {
+    # It's a character vector of action names
+    message_actions_attr <- paste(message_actions, collapse = ",")
   }
 
   message_tags <- lapply(messages, function(x) {
@@ -123,6 +160,7 @@ chat_ui <- function(
         `data-role` = role,
         content = ui[["html"]],
         icon = if (!is.null(icon_assistant)) as.character(icon_assistant),
+        `message-actions` = message_actions_attr,
         ui[["dependencies"]],
       )
     )
@@ -143,6 +181,8 @@ chat_ui <- function(
       `icon-assistant` = if (!is.null(icon_assistant)) {
         as.character(icon_assistant)
       },
+      # Include message-actions on container so dynamically added messages inherit it
+      `message-actions` = message_actions_attr,
       ...,
       tag("shiny-chat-messages", message_tags),
       tag(

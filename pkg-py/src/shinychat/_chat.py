@@ -110,6 +110,23 @@ UserSubmitFunction = Union[
     UserSubmitFunction1,
 ]
 
+# Message action callback types
+# Event data dict contains: messageIndex (int), content (str)
+# For feedback, also contains: feedback ("positive" | "negative")
+MessageActionEvent = dict[str, Any]
+MessageActionCallback0 = Union[
+    Callable[[], None],
+    Callable[[], Awaitable[None]],
+]
+MessageActionCallback1 = Union[
+    Callable[[MessageActionEvent], None],
+    Callable[[MessageActionEvent], Awaitable[None]],
+]
+MessageActionCallback = Union[
+    MessageActionCallback0,
+    MessageActionCallback1,
+]
+
 ChunkOption = Literal["start", "end", True, False]
 
 PendingMessage = Tuple[
@@ -213,6 +230,11 @@ class Chat:
 
         self.id = resolve_id(id)
         self.user_input_id = ResolvedId(f"{self.id}_user_input")
+        # Message action input IDs
+        self._message_copy_id = ResolvedId(f"{self.id}_message_copy")
+        self._message_feedback_id = ResolvedId(f"{self.id}_message_feedback")
+        self._message_regenerate_id = ResolvedId(f"{self.id}_message_regenerate")
+        self._message_share_id = ResolvedId(f"{self.id}_message_share")
         self._transform_user: TransformUserInputAsync | None = None
         self._transform_assistant: (
             TransformAssistantResponseChunkAsync | None
@@ -394,6 +416,203 @@ class Chat:
             return create_effect
         else:
             return create_effect(fn)
+
+    # -------------------------------------------------------------------------
+    # Message action decorators
+    # -------------------------------------------------------------------------
+
+    def _create_message_action_decorator(
+        self,
+        input_fn: Callable[[], MessageActionEvent],
+        action_name: str,
+    ) -> Callable[[MessageActionCallback], Effect_]:
+        """
+        Factory for creating message action decorators.
+        """
+
+        def decorator(fn: MessageActionCallback) -> Effect_:
+            from shiny import reactive
+
+            fn_params = inspect.signature(fn).parameters
+
+            @reactive.effect
+            @reactive.event(input_fn)
+            async def handle_message_action():
+                try:
+                    if len(fn_params) > 1:
+                        raise ValueError(
+                            f"on_{action_name} callback should not take more than 1 argument"
+                        )
+                    elif len(fn_params) == 1:
+                        event_data = input_fn()
+                        afunc = _utils.wrap_async(
+                            cast(MessageActionCallback1, fn)
+                        )
+                        await afunc(event_data)
+                    else:
+                        afunc = _utils.wrap_async(
+                            cast(MessageActionCallback0, fn)
+                        )
+                        await afunc()
+                except Exception as e:
+                    await self._raise_exception(e)
+
+            self._effects.append(handle_message_action)
+            return handle_message_action
+
+        return decorator
+
+    @overload
+    def on_message_feedback(
+        self, fn: MessageActionCallback
+    ) -> Effect_: ...
+
+    @overload
+    def on_message_feedback(
+        self,
+    ) -> Callable[[MessageActionCallback], Effect_]: ...
+
+    def on_message_feedback(
+        self, fn: MessageActionCallback | None = None
+    ) -> Effect_ | Callable[[MessageActionCallback], Effect_]:
+        """
+        Define a function to invoke when message feedback is submitted.
+
+        Apply this method as a decorator to a function (`fn`) that should be invoked
+        when the user clicks the thumbs up or thumbs down button on a message.
+
+        Parameters
+        ----------
+        fn
+            A function to invoke when feedback is submitted. If the function takes
+            one argument, it will receive a dict with `messageIndex` (int),
+            `content` (str), and `feedback` ("positive" or "negative").
+
+        Returns
+        -------
+        :
+            A reactive effect.
+        """
+        decorator = self._create_message_action_decorator(
+            self._message_feedback, "message_feedback"
+        )
+        if fn is None:
+            return decorator
+        else:
+            return decorator(fn)
+
+    @overload
+    def on_message_copy(self, fn: MessageActionCallback) -> Effect_: ...
+
+    @overload
+    def on_message_copy(
+        self,
+    ) -> Callable[[MessageActionCallback], Effect_]: ...
+
+    def on_message_copy(
+        self, fn: MessageActionCallback | None = None
+    ) -> Effect_ | Callable[[MessageActionCallback], Effect_]:
+        """
+        Define a function to invoke when a message is copied.
+
+        Apply this method as a decorator to a function (`fn`) that should be invoked
+        when the user clicks the copy button on a message.
+
+        Parameters
+        ----------
+        fn
+            A function to invoke when a message is copied. If the function takes
+            one argument, it will receive a dict with `messageIndex` (int) and
+            `content` (str).
+
+        Returns
+        -------
+        :
+            A reactive effect.
+        """
+        decorator = self._create_message_action_decorator(
+            self._message_copy, "message_copy"
+        )
+        if fn is None:
+            return decorator
+        else:
+            return decorator(fn)
+
+    @overload
+    def on_message_regenerate(
+        self, fn: MessageActionCallback
+    ) -> Effect_: ...
+
+    @overload
+    def on_message_regenerate(
+        self,
+    ) -> Callable[[MessageActionCallback], Effect_]: ...
+
+    def on_message_regenerate(
+        self, fn: MessageActionCallback | None = None
+    ) -> Effect_ | Callable[[MessageActionCallback], Effect_]:
+        """
+        Define a function to invoke when message regeneration is requested.
+
+        Apply this method as a decorator to a function (`fn`) that should be invoked
+        when the user clicks the regenerate button on a message.
+
+        Parameters
+        ----------
+        fn
+            A function to invoke when regeneration is requested. If the function takes
+            one argument, it will receive a dict with `messageIndex` (int) and
+            `content` (str).
+
+        Returns
+        -------
+        :
+            A reactive effect.
+        """
+        decorator = self._create_message_action_decorator(
+            self._message_regenerate, "message_regenerate"
+        )
+        if fn is None:
+            return decorator
+        else:
+            return decorator(fn)
+
+    @overload
+    def on_message_share(self, fn: MessageActionCallback) -> Effect_: ...
+
+    @overload
+    def on_message_share(
+        self,
+    ) -> Callable[[MessageActionCallback], Effect_]: ...
+
+    def on_message_share(
+        self, fn: MessageActionCallback | None = None
+    ) -> Effect_ | Callable[[MessageActionCallback], Effect_]:
+        """
+        Define a function to invoke when message sharing is requested.
+
+        Apply this method as a decorator to a function (`fn`) that should be invoked
+        when the user clicks the share button on a message.
+
+        Parameters
+        ----------
+        fn
+            A function to invoke when sharing is requested. If the function takes
+            one argument, it will receive a dict with `messageIndex` (int) and
+            `content` (str).
+
+        Returns
+        -------
+        :
+            A reactive effect.
+        """
+        decorator = self._create_message_action_decorator(
+            self._message_share, "message_share"
+        )
+        if fn is None:
+            return decorator
+        else:
+            return decorator(fn)
 
     async def _raise_exception(
         self,
@@ -1307,6 +1526,24 @@ class Chat:
         id = self.user_input_id
         return cast(str, self._session.input[id]())
 
+    def _message_copy(self) -> dict[str, Any]:
+        """Get the latest message copy event data."""
+        return cast(dict[str, Any], self._session.input[self._message_copy_id]())
+
+    def _message_feedback(self) -> dict[str, Any]:
+        """Get the latest message feedback event data."""
+        return cast(dict[str, Any], self._session.input[self._message_feedback_id]())
+
+    def _message_regenerate(self) -> dict[str, Any]:
+        """Get the latest message regenerate event data."""
+        return cast(
+            dict[str, Any], self._session.input[self._message_regenerate_id]()
+        )
+
+    def _message_share(self) -> dict[str, Any]:
+        """Get the latest message share event data."""
+        return cast(dict[str, Any], self._session.input[self._message_share_id]())
+
     def update_user_input(
         self,
         *,
@@ -1711,6 +1948,9 @@ def chat_ui(
     height: "CssUnit" = "auto",
     fill: bool = True,
     icon_assistant: Optional[HTML | Tag | TagList] = None,
+    message_actions: Union[
+        bool, Literal["all", "none"], Sequence[str], None
+    ] = None,
     **kwargs: TagAttrValue,
 ) -> Tag:
     """
@@ -1753,6 +1993,15 @@ def chat_ui(
             The icon to use for the assistant chat messages. Can be a HTML or a tag in
             the form of :class:`~htmltools.HTML` or :class:`~htmltools.Tag`. If `None`,
             a default robot icon is used.
+    message_actions
+        Controls which action buttons appear on assistant messages. Can be:
+
+        * `None` (default) - No action buttons shown.
+        * `True` or `"all"` - Show all action buttons (copy, feedback, regenerate,
+          share, more).
+        * `False` or `"none"` - No action buttons shown.
+        * A sequence of action names - Show only the specified actions. Valid names
+          are: "copy", "feedback", "regenerate", "share", "more".
     kwargs
         Additional attributes for the chat container element.
     """
@@ -1770,6 +2019,16 @@ def chat_ui(
     if isinstance(icon_assistant, (Tag, TagList)):
         icon_deps = icon_assistant.get_dependencies()
 
+    # Process message_actions to a string attribute
+    message_actions_attr: Optional[str] = None
+    if message_actions is True or message_actions == "all":
+        message_actions_attr = "all"
+    elif message_actions is False or message_actions == "none":
+        message_actions_attr = "none"
+    elif message_actions is not None:
+        # It's a sequence of action names
+        message_actions_attr = ",".join(message_actions)
+
     message_tags: list[Tag] = []
     if messages is None:
         messages = []
@@ -1782,6 +2041,7 @@ def chat_ui(
                 content=msg.content,
                 icon=icon_attr,
                 data_role=msg.role,
+                message_actions=message_actions_attr,
             )
         )
 
@@ -1807,6 +2067,8 @@ def chat_ui(
         # Also include icon on the parent so that when messages are dynamically added,
         # we know the default icon has changed
         icon_assistant=icon_attr,
+        # Include message-actions on container so dynamically added messages inherit it
+        message_actions=message_actions_attr,
         **kwargs,
     )
 

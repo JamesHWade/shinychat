@@ -12,7 +12,8 @@ chat_ui(
   width = "min(680px, 100\%)",
   height = "auto",
   fill = TRUE,
-  icon_assistant = NULL
+  icon_assistant = NULL,
+  message_actions = NULL
 )
 }
 \arguments{
@@ -52,6 +53,17 @@ container, if the container is
 \item{icon_assistant}{The icon to use for the assistant chat messages.
 Can be HTML or a tag in the form of \code{\link[htmltools:HTML]{htmltools::HTML()}} or
 \code{\link[htmltools:builder]{htmltools::tags()}}. If \code{None}, a default robot icon is used.}
+
+\item{message_actions}{Controls which action buttons appear on assistant
+messages. Can be:
+\itemize{
+\item \code{NULL} (default) - No action buttons shown.
+\item \code{TRUE} or \code{"all"} - Show all action buttons (copy, feedback, regenerate,
+share, more).
+\item \code{FALSE} or \code{"none"} - No action buttons shown.
+\item A character vector of action names - Show only the specified actions.
+Valid names are: "copy", "feedback", "regenerate", "share", "more".
+}}
 }
 \value{
 A Shiny tag object, suitable for inclusion in a Shiny UI
@@ -65,6 +77,23 @@ To respond to user input, listen for \code{input$ID_user_input} (for example, if
 \code{id="my_chat"}, user input will be at \code{input$my_chat_user_input}), and use
 \code{\link[=chat_append]{chat_append()}} to append messages to the chat.
 }
+\section{Message action events}{
+When \code{message_actions} is enabled, clicking action buttons on messages will
+trigger the following inputs (replace \code{ID} with your chat ID):
+\itemize{
+\item \code{input$ID_message_copy} - Triggered when copy button is clicked.
+Contains \code{messageIndex} (int) and \code{content} (string).
+\item \code{input$ID_message_feedback} - Triggered when thumbs up/down is clicked.
+Contains \code{messageIndex}, \code{content}, and \code{feedback} ("positive" or "negative").
+\item \code{input$ID_message_regenerate} - Triggered when regenerate button is clicked.
+Contains \code{messageIndex} and \code{content}.
+\item \code{input$ID_message_share} - Triggered when share button is clicked.
+Contains \code{messageIndex} and \code{content}.
+}
+
+Use \code{observeEvent(input$my_chat_message_feedback, ...)} to respond to these events.
+}
+
 \examples{
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 library(shiny)
