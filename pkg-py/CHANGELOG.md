@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+### New features
+
+* Added `message_actions` parameter to `chat_ui()` for displaying action buttons (copy, thumbs up/down, regenerate, share) on assistant messages. Use `message_actions=True` to enable all actions, or pass a list like `["copy", "feedback"]` to enable specific actions. Decorators `@chat.on_message_feedback`, `@chat.on_message_copy`, `@chat.on_message_regenerate`, and `@chat.on_message_share` handle button click events.
+
 ### Maintenance
 
 * Fixed an issue where user chat messages would display the default assistant icon. (#162)
