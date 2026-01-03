@@ -57,6 +57,15 @@ chat_deps <- function() {
 #' @param icon_assistant The icon to use for the assistant chat messages.
 #'   Can be HTML or a tag in the form of [htmltools::HTML()] or
 #'   [htmltools::tags()]. If `None`, a default robot icon is used.
+#' @param audio_input Enable audio input via a microphone button. Options:
+#'   * `FALSE` (default): No audio input.
+#'   * `TRUE` or `"transcribe"`: Uses the browser's Web Speech API to transcribe
+#'     speech to text. The transcribed text is inserted as the user's message
+#'     (like ChatGPT). Free, no API key required.
+#'   * `"raw"`: Sends raw audio data to the server as a Shiny input
+#'     (`input$ID_user_input_audio`) with `audio` (base64), `format`, `duration`,
+#'     and `size` fields. Use this with multimodal LLMs that accept native audio
+#'     (e.g., GPT-4o, Gemini).
 #' @returns A Shiny tag object, suitable for inclusion in a Shiny UI
 #'
 #' @examplesIf interactive()
@@ -94,7 +103,8 @@ chat_ui <- function(
   width = "min(680px, 100%)",
   height = "auto",
   fill = TRUE,
-  icon_assistant = NULL
+  icon_assistant = NULL,
+  audio_input = FALSE
 ) {
   attrs <- rlang::list2(...)
   if (!all(nzchar(rlang::names2(attrs)))) {
@@ -147,7 +157,17 @@ chat_ui <- function(
       tag("shiny-chat-messages", message_tags),
       tag(
         "shiny-chat-input",
-        list(id = paste0(id, "_user_input"), placeholder = placeholder)
+        list(
+          id = paste0(id, "_user_input"),
+          placeholder = placeholder,
+          `audio-input` = if (isTRUE(audio_input)) {
+            "transcribe"
+          } else if (is.character(audio_input) && audio_input %in% c("transcribe", "raw")) {
+            audio_input
+          } else {
+            NULL
+          }
+        )
       ),
       chat_deps(),
       htmltools::findDependencies(icon_assistant)

@@ -1,6 +1,52 @@
 import { LitElement, html } from "lit"
 import { unsafeHTML } from "lit-html/directives/unsafe-html.js"
-import { property } from "lit/decorators.js"
+import { property, state } from "lit/decorators.js"
+
+// Web Speech API type declarations
+interface SpeechRecognitionEvent extends Event {
+  resultIndex: number
+  results: SpeechRecognitionResultList
+}
+
+interface SpeechRecognitionResultList {
+  length: number
+  [index: number]: SpeechRecognitionResult
+}
+
+interface SpeechRecognitionResult {
+  isFinal: boolean
+  length: number
+  [index: number]: SpeechRecognitionAlternative
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string
+  confidence: number
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string
+  message: string
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  onresult: ((event: SpeechRecognitionEvent) => void) | null
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null
+  onend: (() => void) | null
+  start(): void
+  stop(): void
+  abort(): void
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: new () => SpeechRecognition
+    webkitSpeechRecognition: new () => SpeechRecognition
+  }
+}
 
 import {
   LightElement,
@@ -44,6 +90,13 @@ type UpdateUserInput = {
   focus?: false
 }
 
+type AudioInputData = {
+  audio: string // base64 encoded audio
+  format: string // e.g., "audio/webm", "audio/wav"
+  duration: number // duration in seconds
+  size: number // size in bytes
+}
+
 // https://github.com/microsoft/TypeScript/issues/28357#issuecomment-748550734
 declare global {
   interface GlobalEventHandlersEventMap {
@@ -53,6 +106,7 @@ declare global {
     "shiny-chat-clear-messages": CustomEvent
     "shiny-chat-update-user-input": CustomEvent<UpdateUserInput>
     "shiny-chat-remove-loading-message": CustomEvent
+    "shiny-chat-audio-input": CustomEvent<AudioInputData>
   }
 }
 
@@ -70,6 +124,12 @@ const ICONS = {
   // https://github.com/n3r4zzurr0/svg-spinners/blob/main/svg-css/3-dots-fade.svg
   dots_fade:
     '<svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><style>.spinner_S1WN{animation:spinner_MGfb .8s linear infinite;animation-delay:-.8s}.spinner_Km9P{animation-delay:-.65s}.spinner_JApP{animation-delay:-.5s}@keyframes spinner_MGfb{93.75%,100%{opacity:.2}}</style><circle class="spinner_S1WN" cx="4" cy="12" r="3"/><circle class="spinner_S1WN spinner_Km9P" cx="12" cy="12" r="3"/><circle class="spinner_S1WN spinner_JApP" cx="20" cy="12" r="3"/></svg>',
+  // Bootstrap microphone icon
+  microphone:
+    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-mic" viewBox="0 0 16 16"><path d="M3.5 6.5A.5.5 0 0 1 4 7v1a4 4 0 0 0 8 0V7a.5.5 0 0 1 1 0v1a5 5 0 0 1-4.5 4.975V15h3a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1h3v-2.025A5 5 0 0 1 3 8V7a.5.5 0 0 1 .5-.5"/><path d="M10 8a2 2 0 1 1-4 0V3a2 2 0 1 1 4 0zM8 0a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V3a3 3 0 0 0-3-3"/></svg>',
+  // Bootstrap stop-circle icon for stopping recording
+  stop_circle:
+    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-stop-circle-fill" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M6.5 5A1.5 1.5 0 0 0 5 6.5v3A1.5 1.5 0 0 0 6.5 11h3A1.5 1.5 0 0 0 11 9.5v-3A1.5 1.5 0 0 0 9.5 5z"/></svg>',
 }
 
 class ChatMessage extends LightElement {
@@ -178,6 +238,19 @@ class ChatInput extends LightElement {
   private _isComposing = false
   inputVisibleObserver?: IntersectionObserver
 
+  // Audio recording state
+  // audio-input accepts: "transcribe" (use Web Speech API), "raw" (send audio blob), or empty/false
+  @property({ attribute: "audio-input" }) audioInputMode: string = ""
+  @state() private _isRecording = false
+  @state() private _recordingDuration = 0
+  private _mediaRecorder: MediaRecorder | null = null
+  private _audioChunks: Blob[] = []
+  private _recordingStartTime = 0
+  private _recordingTimer: number | null = null
+  private _speechRecognition: SpeechRecognition | null = null
+  private _finalTranscript: string = "" // Accumulated final results
+  @state() private _transcribedText: string = "" // Display text (finals + interim)
+
   connectedCallback(): void {
     super.connectedCallback()
 
@@ -198,6 +271,7 @@ class ChatInput extends LightElement {
     this.inputVisibleObserver = undefined
     this.removeEventListener("compositionstart", this.#onCompositionStart)
     this.removeEventListener("compositionend", this.#onCompositionEnd)
+    this.#stopRecording(true) // Cancel any ongoing recording/transcription
   }
 
   attributeChangedCallback(
@@ -227,9 +301,55 @@ class ChatInput extends LightElement {
     return this.querySelector(".shiny-chat-btn-send") as HTMLButtonElement
   }
 
+  private get audioInputEnabled(): boolean {
+    return this.audioInputMode === "transcribe" || this.audioInputMode === "raw"
+  }
+
+  private get isTranscribeMode(): boolean {
+    return this.audioInputMode === "transcribe"
+  }
+
   render() {
-    const icon =
+    const sendIcon =
       '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-up-circle-fill" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 0 0 8a8 8 0 0 0 16 0m-7.5 3.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707z"/></svg>'
+
+    // Recording indicator content depends on mode
+    const recordingContent = this._isRecording
+      ? this.isTranscribeMode
+        ? html`
+            <span class="recording-indicator transcribing">
+              ${unsafeHTML(ICONS.stop_circle)}
+              <span class="transcribed-text"
+                >${this._transcribedText || "Listening..."}</span
+              >
+            </span>
+          `
+        : html`
+            <span class="recording-indicator">
+              ${unsafeHTML(ICONS.stop_circle)}
+              <span class="recording-time"
+                >${this.#formatDuration(this._recordingDuration)}</span
+              >
+            </span>
+          `
+      : unsafeHTML(ICONS.microphone)
+
+    const micButton = this.audioInputEnabled
+      ? html`
+          <button
+            type="button"
+            class="shiny-chat-btn-mic ${this._isRecording ? "recording" : ""}"
+            title="${this._isRecording ? "Stop recording" : "Record audio"}"
+            aria-label="${this._isRecording
+              ? "Stop recording"
+              : "Record audio"}"
+            @click=${this.#toggleRecording}
+            ?disabled=${this.disabled}
+          >
+            ${recordingContent}
+          </button>
+        `
+      : null
 
     return html`
       <textarea
@@ -241,6 +361,7 @@ class ChatInput extends LightElement {
         @input=${this.#onInput}
         data-shiny-no-bind-input
       ></textarea>
+      ${micButton}
       <button
         type="button"
         class="shiny-chat-btn-send"
@@ -248,7 +369,7 @@ class ChatInput extends LightElement {
         aria-label="Send message"
         @click=${this.#sendInput}
       >
-        ${unsafeHTML(icon)}
+        ${unsafeHTML(sendIcon)}
       </button>
     `
   }
@@ -330,6 +451,235 @@ class ChatInput extends LightElement {
     if (focus) {
       this.textarea.focus()
     }
+  }
+
+  // Audio recording methods
+  #formatDuration(seconds: number): string {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, "0")}`
+  }
+
+  #toggleRecording(): void {
+    if (this._isRecording) {
+      this.#stopRecording(false)
+    } else {
+      if (this.isTranscribeMode) {
+        this.#startTranscription()
+      } else {
+        this.#startRecording()
+      }
+    }
+  }
+
+  // Transcribe mode: Use Web Speech API
+  #startTranscription(): void {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      console.warn(
+        "Speech recognition not supported in this browser. Falling back to raw audio mode.",
+      )
+      this.#startRecording()
+      return
+    }
+
+    try {
+      this._speechRecognition = new SpeechRecognition()
+      this._speechRecognition.continuous = true
+      this._speechRecognition.interimResults = true
+      this._speechRecognition.lang = navigator.language || "en-US"
+
+      this._finalTranscript = ""
+      this._transcribedText = ""
+
+      this._speechRecognition.onresult = (event: SpeechRecognitionEvent) => {
+        let interimTranscript = ""
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const result = event.results[i]
+          if (!result || !result[0]) continue
+          const transcript = result[0].transcript
+          if (result.isFinal) {
+            // Add final results to accumulated finals
+            this._finalTranscript += transcript
+          } else {
+            interimTranscript += transcript
+          }
+        }
+
+        // Display: accumulated finals + current interim (interim replaces each time)
+        this._transcribedText = (
+          this._finalTranscript + interimTranscript
+        ).trim()
+      }
+
+      this._speechRecognition.onerror = (
+        event: SpeechRecognitionErrorEvent,
+      ) => {
+        const errorMessages: Record<string, string> = {
+          network:
+            "Network error: Speech recognition requires internet access. Try using audio_input='raw' for offline recording.",
+          "not-allowed":
+            "Microphone access denied. Please allow microphone access in your browser.",
+          "no-speech": "No speech detected. Please try again.",
+          aborted: "Speech recognition was aborted.",
+        }
+        const message =
+          errorMessages[event.error] ||
+          `Speech recognition error: ${event.error}`
+        console.warn(message)
+        this.#stopRecording(true)
+      }
+
+      this._speechRecognition.onend = () => {
+        // Recognition ended (could be due to silence or user stop)
+        if (this._isRecording) {
+          // If we're still in recording state, user didn't manually stop
+          // Auto-restart to keep listening (browser may stop after silence)
+          this._speechRecognition?.start()
+        }
+      }
+
+      this._speechRecognition.start()
+      this._isRecording = true
+      this._recordingStartTime = Date.now()
+    } catch (err) {
+      console.warn("Failed to start speech recognition:", err)
+    }
+  }
+
+  // Raw mode: Use MediaRecorder
+  async #startRecording(): Promise<void> {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+
+      // Prefer webm/opus for broad compatibility, fall back to wav
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : MediaRecorder.isTypeSupported("audio/webm")
+          ? "audio/webm"
+          : "audio/wav"
+
+      this._mediaRecorder = new MediaRecorder(stream, { mimeType })
+      this._audioChunks = []
+
+      this._mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          this._audioChunks.push(event.data)
+        }
+      }
+
+      this._mediaRecorder.onstop = () => {
+        // Stop all tracks to release the microphone
+        stream.getTracks().forEach((track) => track.stop())
+      }
+
+      this._mediaRecorder.start()
+      this._isRecording = true
+      this._recordingStartTime = Date.now()
+      this._recordingDuration = 0
+
+      // Update duration every second
+      this._recordingTimer = window.setInterval(() => {
+        this._recordingDuration = Math.floor(
+          (Date.now() - this._recordingStartTime) / 1000,
+        )
+      }, 1000)
+    } catch (err) {
+      console.warn("Failed to start audio recording:", err)
+    }
+  }
+
+  #stopRecording(cancel: boolean): void {
+    // Handle transcription mode
+    if (this._speechRecognition) {
+      this._speechRecognition.onend = null // Prevent auto-restart
+      this._speechRecognition.stop()
+      this._speechRecognition = null
+
+      if (!cancel && this._transcribedText.trim()) {
+        // Insert transcribed text and submit
+        this.setInputValue(this._transcribedText.trim(), {
+          submit: true,
+          focus: true,
+        })
+      }
+
+      this._isRecording = false
+      this._transcribedText = ""
+      return
+    }
+
+    // Handle raw audio mode
+    if (!this._mediaRecorder || !this._isRecording) return
+
+    // Clear the timer
+    if (this._recordingTimer !== null) {
+      clearInterval(this._recordingTimer)
+      this._recordingTimer = null
+    }
+
+    const duration = (Date.now() - this._recordingStartTime) / 1000
+
+    if (cancel) {
+      // Just stop without processing
+      this._mediaRecorder.stop()
+      this._isRecording = false
+      this._audioChunks = []
+      return
+    }
+
+    // Set up handler for when recording data is ready
+    this._mediaRecorder.onstop = () => {
+      // Stop all tracks to release the microphone
+      this._mediaRecorder?.stream.getTracks().forEach((track) => track.stop())
+
+      if (this._audioChunks.length > 0) {
+        const mimeType = this._mediaRecorder?.mimeType || "audio/webm"
+        const audioBlob = new Blob(this._audioChunks, { type: mimeType })
+        this.#sendAudioData(audioBlob, mimeType, duration)
+      }
+
+      this._audioChunks = []
+    }
+
+    this._mediaRecorder.stop()
+    this._isRecording = false
+  }
+
+  #sendAudioData(blob: Blob, format: string, duration: number): void {
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const result = reader.result as string
+      const base64 = result.split(",")[1] || "" // Remove data URL prefix
+
+      const audioData: AudioInputData = {
+        audio: base64,
+        format: format,
+        duration: duration,
+        size: blob.size,
+      }
+
+      // Send to Shiny
+      if (!window.Shiny?.setInputValue) {
+        console.warn("Shiny not available, cannot send audio input")
+        return
+      }
+      window.Shiny.setInputValue(`${this.id}_audio`, audioData, {
+        priority: "event",
+      })
+
+      // Emit event for parent component
+      const audioEvent = new CustomEvent("shiny-chat-audio-input", {
+        detail: audioData,
+        bubbles: true,
+        composed: true,
+      })
+      this.dispatchEvent(audioEvent)
+    }
+
+    reader.readAsDataURL(blob)
   }
 }
 

@@ -1607,6 +1607,7 @@ class ChatExpress(Chat):
         height: "CssUnit" = "auto",
         fill: bool = True,
         icon_assistant: HTML | Tag | TagList | None = None,
+        audio_input: bool | Literal["transcribe", "raw"] = False,
         **kwargs: TagAttrValue,
     ) -> Tag:
         """
@@ -1632,6 +1633,8 @@ class ChatExpress(Chat):
             The icon to use for the assistant chat messages. Can be a HTML or a tag in
             the form of :class:`~htmltools.HTML` or :class:`~htmltools.Tag`. If `None`,
             a default robot icon is used.
+        audio_input
+            Enable audio input via a microphone button. See :func:`chat_ui` for options.
         kwargs
             Additional attributes for the chat container element.
         """
@@ -1644,6 +1647,7 @@ class ChatExpress(Chat):
             height=height,
             fill=fill,
             icon_assistant=icon_assistant,
+            audio_input=audio_input,
             **kwargs,
         )
 
@@ -1711,6 +1715,7 @@ def chat_ui(
     height: "CssUnit" = "auto",
     fill: bool = True,
     icon_assistant: Optional[HTML | Tag | TagList] = None,
+    audio_input: bool | Literal["transcribe", "raw"] = False,
     **kwargs: TagAttrValue,
 ) -> Tag:
     """
@@ -1753,6 +1758,17 @@ def chat_ui(
             The icon to use for the assistant chat messages. Can be a HTML or a tag in
             the form of :class:`~htmltools.HTML` or :class:`~htmltools.Tag`. If `None`,
             a default robot icon is used.
+    audio_input
+        Enable audio input via a microphone button. Options:
+
+        * ``False`` (default): No audio input.
+        * ``True`` or ``"transcribe"``: Uses the browser's Web Speech API to transcribe
+          speech to text. The transcribed text is inserted as the user's message
+          (like ChatGPT). Free, no API key required.
+        * ``"raw"``: Sends raw audio data to the server as a Shiny input
+          (``input.{id}_user_input_audio``) with ``audio`` (base64), ``format``,
+          ``duration``, and ``size`` fields. Use this with multimodal LLMs that
+          accept native audio (e.g., GPT-4o, Gemini).
     kwargs
         Additional attributes for the chat container element.
     """
@@ -1792,6 +1808,13 @@ def chat_ui(
             "shiny-chat-input",
             id=f"{id}_user_input",
             placeholder=placeholder,
+            audio_input=(
+                "transcribe"
+                if audio_input is True
+                else audio_input
+                if audio_input in ("transcribe", "raw")
+                else None
+            ),
         ),
         chat_deps(),
         icon_deps,

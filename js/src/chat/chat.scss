@@ -161,28 +161,90 @@ shiny-chat-input {
   textarea {
     --bs-border-radius: 26px;
     resize: none;
-    padding-right: 36px !important;
+    padding-right: 72px !important; // More space for mic + send buttons
     max-height: 175px;
     &::placeholder {
       color: var(--bs-gray-600, #707782) !important;
     }
   }
-  .shiny-chat-btn-send {
+
+  // Shared button styles
+  .shiny-chat-btn-send,
+  .shiny-chat-btn-mic {
     position: absolute;
     bottom: calc(6px + var(--_input-padding-bottom));
-    right: 8px;
     background-color: transparent;
-    color: var(--bs-primary, #007bc2);
     transition: color 0.25s ease-in-out;
     border: none;
     padding: 0;
     cursor: pointer;
     line-height: 16px;
     border-radius: 50%;
+
     &:disabled {
       cursor: not-allowed;
       color: var(--bs-gray-500, #8d959e);
     }
+  }
+
+  .shiny-chat-btn-send {
+    right: 8px;
+    color: var(--bs-primary, #007bc2);
+  }
+
+  .shiny-chat-btn-mic {
+    right: 40px;
+    color: var(--bs-gray-600, #707782);
+
+    &:hover:not(:disabled) {
+      color: var(--bs-primary, #007bc2);
+    }
+
+    &.recording {
+      color: var(--bs-danger, #dc3545);
+
+      .recording-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+
+        svg {
+          animation: pulse-recording 1.5s ease-in-out infinite;
+          flex-shrink: 0;
+        }
+
+        &.transcribing {
+          max-width: 200px;
+        }
+      }
+
+      .recording-time {
+        font-size: 0.75rem;
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+        min-width: 2.5rem;
+      }
+
+      .transcribed-text {
+        font-size: 0.75rem;
+        font-weight: 400;
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--bs-body-color, #212529);
+      }
+    }
+  }
+}
+
+@keyframes pulse-recording {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
   }
 }
 
