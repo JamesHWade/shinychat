@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [UNRELEASED]
 
+### New features
+
+* Added `audio_input` parameter to `chat_ui()` for voice input. Set to `"transcribe"` to use the browser's Web Speech API for speech-to-text, or `"raw"` to capture audio and send it to the server as a base64-encoded blob (for use with multimodal models like GPT-4o or Gemini).
+
 ### Maintenance
 
 * Fixed an issue where user chat messages would display the default assistant icon. (#162)
