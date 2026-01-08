@@ -11,9 +11,9 @@ Provides a scrolling chat interface with multiline input, suitable for creating 
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://posit-dev.github.io/dowshinychat/r/}
-  \item \url{https://github.com/posit-dev/dowshinychat}
-  \item Report bugs at \url{https://github.com/posit-dev/dowshinychat/issues}
+  \item \url{https://posit-dev.github.io/shinychat/r/}
+  \item \url{https://github.com/posit-dev/shinychat}
+  \item Report bugs at \url{https://github.com/posit-dev/shinychat/issues}
 }
 
 }

@@ -1,22 +1,22 @@
-opt_dowshinychat_tool_display <- function() {
+opt_shinychat_tool_display <- function() {
   choices <- c("none", "basic", "rich")
 
-  opt <- getOption("dowshinychat.tool_display", default = NULL)
+  opt <- getOption("shinychat.tool_display", default = NULL)
   if (!is.null(opt)) {
-    opt <- arg_match(opt, choices, error_arg = "dowshinychat.tool_display")
+    opt <- arg_match(opt, choices, error_arg = "shinychat.tool_display")
     return(opt)
   }
 
-  env <- Sys.getenv("DOWSHINYCHAT_TOOL_DISPLAY", unset = "rich")
-  arg_match(env, choices, error_arg = "DOWSHINYCHAT_TOOL_DISPLAY")
+  env <- Sys.getenv("SHINYCHAT_TOOL_DISPLAY", unset = "rich")
+  arg_match(env, choices, error_arg = "SHINYCHAT_TOOL_DISPLAY")
 }
 
-#' Format ellmer content for dowshinychat
+#' Format ellmer content for shinychat
 #'
-#' @section Extending `contents_dowshinychat()`:
+#' @section Extending `contents_shinychat()`:
 #'
-#' You can extend `contents_dowshinychat()` to handle custom content types in your
-#' application. `contents_dowshinychat()` is [an S7 generic][S7::new_generic]. If
+#' You can extend `contents_shinychat()` to handle custom content types in your
+#' application. `contents_shinychat()` is [an S7 generic][S7::new_generic]. If
 #' you haven't worked with S7 before, you can learn more about S7 classes,
 #' generics and methods in the [S7
 #' documentation](https://rconsortium.github.io/S7/articles/S7.html).
@@ -60,19 +60,19 @@ opt_dowshinychat_tool_display <- function() {
 #' )
 #' ```
 #'
-#' Finally, we can extend `contents_dowshinychat()` to render our custom content
+#' Finally, we can extend `contents_shinychat()` to render our custom content
 #' class for display in the chat interface. The basic process is to define a
-#' `contents_dowshinychat()` external generic and then implement a method for your
+#' `contents_shinychat()` external generic and then implement a method for your
 #' custom class.
 #'
 #' ```r
-#' contents_dowshinychat <- S7::new_external_generic(
+#' contents_shinychat <- S7::new_external_generic(
 #'   package = "dowshinychat",
-#'   name = "contents_dowshinychat",
+#'   name = "contents_shinychat",
 #'   dispatch_args = "contents"
 #' )
 #'
-#' S7::method(contents_dowshinychat, WeatherToolResult) <- function(content) {
+#' S7::method(contents_shinychat, WeatherToolResult) <- function(content) {
 #'   # Your custom rendering logic here
 #' }
 #' ```
@@ -86,9 +86,9 @@ opt_dowshinychat_tool_display <- function() {
 #' to suit your needs.
 #'
 #' ```r
-#' S7::method(contents_dowshinychat, WeatherToolResult) <- function(content) {
+#' S7::method(contents_shinychat, WeatherToolResult) <- function(content) {
 #'   # Call the super method for ContentToolResult to get dowshinychat's defaults
-#'   res <- contents_dowshinychat(S7::super(content, ContentToolResult))
+#'   res <- contents_shinychat(S7::super(content, ContentToolResult))
 #'
 #'   # Then update the result object with more specific content
 #'   # In this case, we render the tool result dataframe as a {gt} table...
@@ -102,7 +102,7 @@ opt_dowshinychat_tool_display <- function() {
 #' ```
 #'
 #' Note that you do **not** need to create a new class or extend
-#' `contents_dowshinychat()` to customize the tool display. Rather, you can use the
+#' `contents_shinychat()` to customize the tool display. Rather, you can use the
 #' strategies discussed in the [Tool Calling UI
 #' article](https://posit-dev.github.io/dowshinychat/r/articles/tool-ui.html) to
 #' customize the tool request and result display by providing a `display` list
@@ -114,15 +114,15 @@ opt_dowshinychat_tool_display <- function() {
 #'   `chat_ui()`.
 #'
 #' @export
-contents_dowshinychat <- S7::new_generic(
-  "contents_dowshinychat",
+contents_shinychat <- S7::new_generic(
+  "contents_shinychat",
   "content",
   function(content) {
     S7::S7_dispatch()
   }
 )
 
-S7::method(contents_dowshinychat, ellmer::Content) <- function(content) {
+S7::method(contents_shinychat, ellmer::Content) <- function(content) {
   # Fall back to html or markdown
   html <- ellmer::contents_html(content)
   if (!is.null(html)) {
@@ -132,7 +132,7 @@ S7::method(contents_dowshinychat, ellmer::Content) <- function(content) {
   }
 }
 
-S7::method(contents_dowshinychat, ellmer::ContentText) <- function(content) {
+S7::method(contents_shinychat, ellmer::ContentText) <- function(content) {
   content@text
 }
 
@@ -212,10 +212,10 @@ knit_print.dowshinychat_tool_card <- function(x, ...) {
   knitr::knit_print(as.tags(x))
 }
 
-S7::method(contents_dowshinychat, ellmer::ContentToolRequest) <- function(
+S7::method(contents_shinychat, ellmer::ContentToolRequest) <- function(
   content
 ) {
-  if (opt_dowshinychat_tool_display() == "none") {
+  if (opt_shinychat_tool_display() == "none") {
     return(NULL)
   }
 
@@ -231,8 +231,8 @@ S7::method(contents_dowshinychat, ellmer::ContentToolRequest) <- function(
   )
 }
 
-S7::method(contents_dowshinychat, ellmer::ContentToolResult) <- function(content) {
-  if (opt_dowshinychat_tool_display() == "none") {
+S7::method(contents_shinychat, ellmer::ContentToolResult) <- function(content) {
+  if (opt_shinychat_tool_display() == "none") {
     return(NULL)
   }
 
@@ -281,7 +281,7 @@ get_tool_result_display <- function(content) {
   display <- content@extra$display
   request <- content@request
 
-  if (is.null(display) || opt_dowshinychat_tool_display() == "basic") {
+  if (is.null(display) || opt_shinychat_tool_display() == "basic") {
     return(list())
   }
 
@@ -292,7 +292,7 @@ get_tool_result_display <- function(content) {
   ) {
     cli::cli_warn(c(
       invalid_display_fmt,
-      "i" = "To display HTML content for tool results in {.pkg dowshinychat}, create a tool result with {.code extra = list(display = list(html = ...))}.",
+      "i" = "To display HTML content for tool results in {.pkg shinychat}, create a tool result with {.code extra = list(display = list(html = ...))}.",
       "i" = "You can also use {.code markdown} or {.code text} items in {.code display} to show Markdown or plain text, respectively."
     ))
     return(list())
@@ -318,7 +318,7 @@ tool_result_display <- function(content, display = NULL) {
   display <- display %||% content@extra$display
 
   has_display <- !is.null(display) && is.list(display) && length(display) > 0
-  use_basic_display <- opt_dowshinychat_tool_display() == "basic"
+  use_basic_display <- opt_shinychat_tool_display() == "basic"
 
   if (tool_errored(content) || use_basic_display || !has_display) {
     return(list(value = tool_string(content), value_type = "code"))
@@ -357,12 +357,12 @@ tool_string <- function(x) {
 }
 
 
-S7::method(contents_dowshinychat, ellmer::Turn) <- function(content) {
+S7::method(contents_shinychat, ellmer::Turn) <- function(content) {
   # Process all contents in the turn, filtering out empty results
-  compact(map(content@contents, contents_dowshinychat))
+  compact(map(content@contents, contents_shinychat))
 }
 
-S7::method(contents_dowshinychat, S7::new_S3_class(c("Chat", "R6"))) <- function(
+S7::method(contents_shinychat, S7::new_S3_class(c("Chat", "R6"))) <- function(
   content
 ) {
   tools <- content$get_tools()
@@ -424,7 +424,7 @@ S7::method(contents_dowshinychat, S7::new_S3_class(c("Chat", "R6"))) <- function
 
   # Convert turns to messages
   messages <- map(turns, function(turn) {
-    content <- compact(contents_dowshinychat(turn))
+    content <- compact(contents_shinychat(turn))
     if (is.null(content) || identical(content, "")) {
       return(NULL)
     }

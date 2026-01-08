@@ -13,6 +13,7 @@ chat_ui(
   height = "auto",
   fill = TRUE,
   icon_assistant = NULL,
+  audio_input = FALSE,
   message_actions = NULL
 )
 }
@@ -53,6 +54,18 @@ container, if the container is
 \item{icon_assistant}{The icon to use for the assistant chat messages.
 Can be HTML or a tag in the form of \code{\link[htmltools:HTML]{htmltools::HTML()}} or
 \code{\link[htmltools:builder]{htmltools::tags()}}. If \code{None}, a default robot icon is used.}
+
+\item{audio_input}{Enable audio input via a microphone button. Options:
+\itemize{
+\item \code{FALSE} (default): No audio input.
+\item \code{TRUE} or \code{"transcribe"}: Uses the browser's Web Speech API to transcribe
+speech to text. The transcribed text is inserted as the user's message
+(like ChatGPT). Free, no API key required.
+\item \code{"raw"}: Sends raw audio data to the server as a Shiny input
+(\code{input$ID_user_input_audio}) with \code{audio} (base64), \code{format}, \code{duration},
+and \code{size} fields. Use this with multimodal LLMs that accept native audio
+(e.g., GPT-4o, Gemini).
+}}
 
 \item{message_actions}{Controls which action buttons appear on assistant
 messages. Can be:

@@ -582,7 +582,7 @@ rlang::on_load(
       }
 
       if (S7::S7_inherits(msg, ellmer::Content)) {
-        msg <- contents_dowshinychat(msg)
+        msg <- contents_shinychat(msg)
       }
 
       chat_append_(msg)

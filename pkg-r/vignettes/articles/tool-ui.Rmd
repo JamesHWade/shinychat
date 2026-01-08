@@ -118,7 +118,7 @@ request <- ContentToolRequest(
   tool = get_weather_forecast
 )
 
-contents_dowshinychat(request)
+contents_shinychat(request)
 ```
 
 When the tool result is completed, dowshinychat replaces the request with a card containing the tool result:
@@ -133,7 +133,7 @@ result <- ContentToolResult(
   request = request
 )
 
-contents_dowshinychat(result)
+contents_shinychat(result)
 ```
 
 If the tool throws an error when called, ellmer captures the error and shows it to the LLM.
@@ -146,7 +146,7 @@ error_result <- ContentToolResult(
   request = request
 )
 
-contents_dowshinychat(error_result)
+contents_shinychat(error_result)
 ```
 
 When you use `chat_app()` or the chat UI module via `chat_mod_ui()` and `chat_mod_server()`, dowshinychat automatically handles tool requests and results, displaying them in the chat interface.
@@ -210,7 +210,7 @@ request_with_annotations <- ContentToolRequest(
   tool = get_weather_forecast
 )
 
-contents_dowshinychat(request_with_annotations)
+contents_shinychat(request_with_annotations)
 ```
 
 and the tool results show both the custom title and the icon.
@@ -223,7 +223,7 @@ result_with_annotations <- ContentToolResult(
   request = request_with_annotations
 )
 
-contents_dowshinychat(result_with_annotations)
+contents_shinychat(result_with_annotations)
 ```
 
 ### Via the tool result
@@ -295,7 +295,7 @@ request_title_icon_result <- ContentToolRequest(
 result_title_icon_result <- get_weather_forecast(42.3601, -71.0589, "Boston, MA")
 result_title_icon_result@request <- request_title_icon_result
 
-contents_dowshinychat(result_title_icon_result)
+contents_shinychat(result_title_icon_result)
 ```
 
 ## Tool intent
@@ -344,7 +344,7 @@ result_random_number <- ContentToolResult(
   request = request_random_number
 )
 
-contents_dowshinychat(result_random_number)
+contents_shinychat(result_random_number)
 ```
 
 ## Customizing tool result display
@@ -422,7 +422,7 @@ request_html <- ContentToolRequest(
 result_html <- do.call(get_weather_forecast, request_html@arguments)
 result_html@request <- request_html
 
-contents_dowshinychat(result_html)
+contents_shinychat(result_html)
 ```
 
 #### Alternative markdown display
@@ -490,7 +490,7 @@ request_html <- ContentToolRequest(
 result_html <- do.call(get_weather_forecast, request_html@arguments)
 result_html@request <- request_html
 
-contents_dowshinychat(result_html)
+contents_shinychat(result_html)
 ```
 
 
@@ -518,17 +518,17 @@ dowshinychat uses the rich tool UI described above by default, but you can choos
 
 Most users won't need to customize these options, but it can be useful to use the basic display for debugging or verification purposes when you need to see the tool arguments and outputs exactly as written and seen by the LLM.
 
-To adjust the display for debugging or verification purposes, set the `dowshinychat.tool_display` option (or the `SHINYCHAT_TOOL_DISPLAY` environment variable) to one of the following values:
+To adjust the display for debugging or verification purposes, set the `shinychat.tool_display` option (or the `SHINYCHAT_TOOL_DISPLAY` environment variable) to one of the following values:
 
 ```r
 # Disable tool UI entirely
-options(dowshinychat.tool_display = "none")
+options(shinychat.tool_display = "none")
 
 # Use basic text-based display (useful for verifying inputs/outputs)
-options(dowshinychat.tool_display = "basic")
+options(shinychat.tool_display = "basic")
 
 # Default rich display applies customizations from tool authors
-options(dowshinychat.tool_display = "rich")
+options(shinychat.tool_display = "rich")
 ```
 
 For most users, the default `"rich"` display provides the best experience.
