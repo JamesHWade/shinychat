@@ -2,6 +2,8 @@
 
 * Added `audio_input` parameter to `chat_ui()` for voice input. Set to `"transcribe"` to use the browser's Web Speech API for speech-to-text, or `"raw"` to capture audio and send it to the server as a base64-encoded blob (for use with multimodal models like GPT-4o or Gemini).
 
+* Added `message_actions` parameter to `chat_ui()` for displaying action buttons (copy, thumbs up/down, regenerate, share) on assistant messages. Use `message_actions = TRUE` to enable all actions, or pass a character vector like `c("copy", "feedback")` to enable specific actions. Message action events are available as Shiny inputs (e.g., `input$ID_message_feedback`).
+
 * Fixed an issue where user chat messages would display the default assistant icon. (#162)
 
 # shinychat 0.3.0
