@@ -9,15 +9,15 @@ import pytest
 from shiny import Session
 from shiny.module import ResolvedId
 from shiny.session import session_context
-from shinychat import Chat
-from shinychat._chat_normalize import message_content, message_content_chunk
-from shinychat._chat_types import (
+from dowshinychat import Chat
+from dowshinychat._chat_normalize import message_content, message_content_chunk
+from dowshinychat._chat_types import (
     ChatMessage,
     ChatMessageDict,
     Role,
     TransformedMessage,
 )
-from shinychat._utils_types import MISSING
+from dowshinychat._utils_types import MISSING
 
 # ----------------------------------------------------------------------
 # Helpers
@@ -460,7 +460,7 @@ def test_as_anthropic_message():
     from anthropic.types import (  # pyright: ignore[reportMissingImports]
         MessageParam,
     )
-    from shinychat._chat_provider_types import as_anthropic_message
+    from dowshinychat._chat_provider_types import as_anthropic_message
 
     # Make sure return type of llm.messages.create() hasn't changed
     assert (
@@ -478,7 +478,7 @@ def test_as_anthropic_message():
 
 
 def test_as_google_message():
-    from shinychat._chat_provider_types import as_google_message
+    from dowshinychat._chat_provider_types import as_google_message
 
     # Not available for Python 3.8
     if sys.version_info < (3, 9):
@@ -522,7 +522,7 @@ def test_as_langchain_message():
         MessageLikeRepresentation,
         SystemMessage,
     )
-    from shinychat._chat_provider_types import as_langchain_message
+    from dowshinychat._chat_provider_types import as_langchain_message
 
     assert BaseChatModel.invoke.__annotations__["input"] == "LanguageModelInput"
     assert BaseChatModel.stream.__annotations__["input"] == "LanguageModelInput"
@@ -553,7 +553,7 @@ def test_as_openai_message():
         ChatCompletionSystemMessageParam,
         ChatCompletionUserMessageParam,
     )
-    from shinychat._chat_provider_types import as_openai_message
+    from dowshinychat._chat_provider_types import as_openai_message
 
     assert (
         Completions.create.__annotations__["messages"]
@@ -589,7 +589,7 @@ def test_as_ollama_message():
         ollama.chat.__annotations__["messages"]
     )
 
-    from shinychat._chat_provider_types import as_ollama_message
+    from dowshinychat._chat_provider_types import as_ollama_message
 
     msg = ChatMessageDict(content="I have a question", role="user")
     assert as_ollama_message(msg) == OllamaMessage(

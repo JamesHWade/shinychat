@@ -1,4 +1,4 @@
-Package: shinychat
+Package: dowshinychat
 Title: Chat UI Component for 'shiny'
 Version: 0.3.0.9000
 Authors@R: c(

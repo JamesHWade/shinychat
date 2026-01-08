@@ -66,7 +66,7 @@ If the \code{response} argument is a generator, promise, or promise generator, a
 an error occurs while producing the message (e.g., an iteration in
 \code{stream_async} fails), the promise returned by \code{chat_append} will reject with
 the error. If the \code{chat_append} call is the last expression in a Shiny
-observer, shinychat will log the error message and show a message that the
+observer, dowshinychat will log the error message and show a message that the
 error occurred in the chat UI.
 }
 
@@ -75,7 +75,7 @@ error occurred in the chat UI.
 library(shiny)
 library(coro)
 library(bslib)
-library(shinychat)
+library(dowshinychat)
 
 # Dumbest chatbot in the world: ignores user input and chooses
 # a random, vague response.

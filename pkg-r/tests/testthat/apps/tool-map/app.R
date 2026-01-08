@@ -2,7 +2,7 @@ library(shiny)
 library(bslib)
 library(ellmer)
 library(leaflet)
-library(shinychat)
+library(dowshinychat)
 
 tool_show_map <- tool(
   function(lat, lon, title, description) {

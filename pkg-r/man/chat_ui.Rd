@@ -98,7 +98,7 @@ Use \code{observeEvent(input$my_chat_message_feedback, ...)} to respond to these
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 library(shiny)
 library(bslib)
-library(shinychat)
+library(dowshinychat)
 
 ui <- page_fillable(
   chat_ui("chat", fill = TRUE)

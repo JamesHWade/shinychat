@@ -3,7 +3,7 @@ from pathlib import Path
 
 import faicons
 from shiny.express import app_opts, input, ui
-from shinychat.express import Chat
+from dowshinychat.express import Chat
 
 ui.page_opts(title="Chat Icons")
 

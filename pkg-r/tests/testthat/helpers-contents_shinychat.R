@@ -1,18 +1,18 @@
-local_shinychat_tool_display <- function(
+local_dowshinychat_tool_display <- function(
   envvar = NULL,
   opt = NULL,
   env = parent.frame()
 ) {
   withr::local_envvar(SHINYCHAT_TOOL_DISPLAY = envvar, .local_envir = env)
-  withr::local_options(shinychat.tool_display = opt, .local_envir = env)
+  withr::local_options(dowshinychat.tool_display = opt, .local_envir = env)
 }
 
-with_shinychat_tool_display <- function(
+with_dowshinychat_tool_display <- function(
   code,
   envvar = NULL,
   opt = NULL
 ) {
-  local_shinychat_tool_display(envvar, opt)
+  local_dowshinychat_tool_display(envvar, opt)
   force(code)
 }
 

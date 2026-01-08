@@ -50,7 +50,7 @@ users should use \code{\link[=chat_append]{chat_append()}} instead.
 library(shiny)
 library(coro)
 library(bslib)
-library(shinychat)
+library(dowshinychat)
 
 # Dumbest chatbot in the world: ignores user input and chooses
 # a random, vague response.

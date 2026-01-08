@@ -3,8 +3,8 @@ import os
 import pandas as pd
 from chatlas import ChatOpenAI, ContentToolResult
 from shiny.express import ui
-from shinychat.express import Chat
-from shinychat.types import ToolResultDisplay
+from dowshinychat.express import Chat
+from dowshinychat.types import ToolResultDisplay
 
 # Set environment variable for tool display
 os.environ["SHINYCHAT_TOOL_DISPLAY"] = "rich"

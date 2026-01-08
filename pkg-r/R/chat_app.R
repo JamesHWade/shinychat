@@ -19,10 +19,10 @@
 #' # Inside a Shiny app ----
 #' library(shiny)
 #' library(bslib)
-#' library(shinychat)
+#' library(dowshinychat)
 #'
 #' ui <- page_fillable(
-#'   titlePanel("shinychat example"),
+#'   titlePanel("dowshinychat example"),
 #'
 #'   layout_columns(
 #'     card(
@@ -72,8 +72,8 @@
 #'
 #' @returns
 #'   * `chat_app()` returns a [shiny::shinyApp()] object.
-#'   * `chat_mod_ui()` returns the UI for a shinychat module.
-#'   * `chat_mod_server()` includes the shinychat module server logic, and
+#'   * `chat_mod_ui()` returns the UI for a dowshinychat module.
+#'   * `chat_mod_server()` includes the dowshinychat module server logic, and
 #'     returns a list containing:
 #'
 #'     * `last_input`: A reactive value containing the last user input.

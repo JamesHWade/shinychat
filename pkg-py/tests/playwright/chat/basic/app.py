@@ -1,5 +1,5 @@
 from shiny.express import render, ui
-from shinychat.express import Chat
+from dowshinychat.express import Chat
 
 # Set some Shiny page options
 ui.page_opts(title="Hello Chat")

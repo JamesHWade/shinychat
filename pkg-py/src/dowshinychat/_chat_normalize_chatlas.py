@@ -168,7 +168,7 @@ class ToolResultDisplay(BaseModel):
 
     ```python
     import chatlas as ctl
-    from shinychat.types import ToolResultDisplay
+    from dowshinychat.types import ToolResultDisplay
 
 
     def my_tool():

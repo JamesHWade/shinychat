@@ -6,9 +6,9 @@
 
 chat_deps <- function() {
   htmltools::htmlDependency(
-    "shinychat",
-    utils::packageVersion("shinychat"),
-    package = "shinychat",
+    "dowshinychat",
+    utils::packageVersion("dowshinychat"),
+    package = "dowshinychat",
     src = "lib/shiny",
     script = list(
       list(src = "chat/chat.js", type = "module"),
@@ -96,7 +96,7 @@ chat_deps <- function() {
 #' @examplesIf interactive()
 #' library(shiny)
 #' library(bslib)
-#' library(shinychat)
+#' library(dowshinychat)
 #'
 #' ui <- page_fillable(
 #'   chat_ui("chat", fill = TRUE)
@@ -242,7 +242,7 @@ chat_ui <- function(
 #' an error occurs while producing the message (e.g., an iteration in
 #' `stream_async` fails), the promise returned by `chat_append` will reject with
 #' the error. If the `chat_append` call is the last expression in a Shiny
-#' observer, shinychat will log the error message and show a message that the
+#' observer, dowshinychat will log the error message and show a message that the
 #' error occurred in the chat UI.
 #'
 #' @param id The ID of the chat element
@@ -275,7 +275,7 @@ chat_ui <- function(
 #' library(shiny)
 #' library(coro)
 #' library(bslib)
-#' library(shinychat)
+#' library(dowshinychat)
 #'
 #' # Dumbest chatbot in the world: ignores user input and chooses
 #' # a random, vague response.
@@ -356,7 +356,7 @@ chat_append <- function(
 #' library(shiny)
 #' library(coro)
 #' library(bslib)
-#' library(shinychat)
+#' library(dowshinychat)
 #'
 #' # Dumbest chatbot in the world: ignores user input and chooses
 #' # a random, vague response.
@@ -438,7 +438,7 @@ chat_append_message <- function(
       "shiny.tag.list",
       "html",
       "htmlwidget",
-      "shinychat_tool_card"
+      "dowshinychat_tool_card"
     )
   )
   content_type <- if (is_html) "html" else "markdown"
@@ -582,7 +582,7 @@ rlang::on_load(
       }
 
       if (S7::S7_inherits(msg, ellmer::Content)) {
-        msg <- contents_shinychat(msg)
+        msg <- contents_dowshinychat(msg)
       }
 
       chat_append_(msg)
@@ -656,7 +656,7 @@ chat_clear <- function(id, session = getDefaultReactiveDomain()) {
 #' @examplesIf interactive()
 #' library(shiny)
 #' library(bslib)
-#' library(shinychat)
+#' library(dowshinychat)
 #'
 #' ui <- page_fillable(
 #'   chat_ui("chat"),

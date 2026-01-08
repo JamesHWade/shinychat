@@ -1,5 +1,5 @@
 import shiny.express  # noqa: F401
-from shinychat.express import Chat
+from dowshinychat.express import Chat
 
 suggestions1 = """
 <p>Here is the <span id="first" class='suggestion'>1st input suggestion</span>.

@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px  # pyright: ignore[reportMissingTypeStubs]
 from shiny import reactive, render
 from shiny.express import ui
-from shinychat.express import Chat
+from dowshinychat.express import Chat
 from shinywidgets import render_plotly, render_widget
 
 ui.page_opts(

@@ -2,7 +2,7 @@
 % Please edit documentation in R/chat_restore.R
 \name{chat_restore}
 \alias{chat_restore}
-\title{Add Shiny bookmarking for shinychat}
+\title{Add Shiny bookmarking for dowshinychat}
 \usage{
 chat_restore(
   id,
@@ -51,7 +51,7 @@ client to \code{chat_restore()}.
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 library(shiny)
 library(bslib)
-library(shinychat)
+library(dowshinychat)
 
 ui <- function(request) {
   page_fillable(

@@ -1,6 +1,6 @@
 from playwright.sync_api import Page, expect
 from shiny.run import ShinyAppProc
-from shinychat.playwright import ChatController
+from dowshinychat.playwright import ChatController
 
 
 def test_validate_chat_append_user_message(

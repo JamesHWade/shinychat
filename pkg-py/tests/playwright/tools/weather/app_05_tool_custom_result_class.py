@@ -1,8 +1,8 @@
 import pandas as pd
 from chatlas import ChatOpenAI, ContentToolResult
 from shiny.express import ui
-from shinychat.express import Chat
-from shinychat.types import ToolResultDisplay
+from dowshinychat.express import Chat
+from dowshinychat.types import ToolResultDisplay
 
 
 class WeatherToolResult(ContentToolResult):

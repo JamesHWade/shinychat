@@ -1,4 +1,4 @@
-# shinychat (development version)
+# dowshinychat (development version)
 
 * Added `audio_input` parameter to `chat_ui()` for voice input. Set to `"transcribe"` to use the browser's Web Speech API for speech-to-text, or `"raw"` to capture audio and send it to the server as a base64-encoded blob (for use with multimodal models like GPT-4o or Gemini).
 
@@ -6,7 +6,7 @@
 
 * Fixed an issue where user chat messages would display the default assistant icon. (#162)
 
-# shinychat 0.3.0
+# dowshinychat 0.3.0
 
 ## Breaking changes
 
@@ -18,7 +18,7 @@
 
 * Added `update_chat_user_input()` for programmatically updating the user input of a chat UI element. (#78)
 
-* shinychat now shows tool call request and results in the UI, and the feature is enabled by default in `chat_app()` and the chat module (`chat_mod_server()`). When using `chat_append()` with `chat_ui()`, set `stream = "content"` when you call the `$stream_async()` method on the `ellmer::Chat` client to ensure tool calls are included in the chat stream output. Learn more in the [tool calling UI article](https://posit-dev.github.io/shinychat/r/articles/tool-ui.html). (#52)
+* dowshinychat now shows tool call request and results in the UI, and the feature is enabled by default in `chat_app()` and the chat module (`chat_mod_server()`). When using `chat_append()` with `chat_ui()`, set `stream = "content"` when you call the `$stream_async()` method on the `ellmer::Chat` client to ensure tool calls are included in the chat stream output. Learn more in the [tool calling UI article](https://posit-dev.github.io/dowshinychat/r/articles/tool-ui.html). (#52)
 
 * Added `chat_append(icon=...)` and `chat_ui(icon_assistant=...)` for customizing the icon that appears next to assistant responses. (#88)
 
@@ -38,7 +38,7 @@
 
 * The chat UI's send input button is now identified by the class `.shiny-chat-btn-send`. (@DeepanshKhurana, #138)
 
-# shinychat 0.2.0
+# dowshinychat 0.2.0
 
 ## New features and improvements
 
@@ -58,6 +58,6 @@
 
 * `chat_append()` now logs and throws a silent error if the stream errors for any reason. This prevents the app from crashing if the stream is interrupted. You can still use `promises::catch()` to handle the error in your app code if desired. (#46)
 
-# shinychat 0.1.1
+# dowshinychat 0.1.1
 
 * Initial CRAN submission.

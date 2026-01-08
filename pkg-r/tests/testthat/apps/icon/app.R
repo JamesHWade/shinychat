@@ -1,6 +1,6 @@
 library(shiny)
 library(bslib)
-library(shinychat)
+library(dowshinychat)
 library(fontawesome)
 
 # Add resource path for images

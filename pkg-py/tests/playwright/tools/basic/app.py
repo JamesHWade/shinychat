@@ -8,8 +8,8 @@ from chatlas import ChatAuto, ContentToolResult
 from chatlas.types import ToolAnnotations
 from shiny import reactive
 from shiny.express import input, ui
-from shinychat.express import Chat
-from shinychat.types import ToolResultDisplay
+from dowshinychat.express import Chat
+from dowshinychat.types import ToolResultDisplay
 
 TOOL_OPTS = {
     "async": os.getenv("TEST_TOOL_ASYNC", "TRUE").lower() == "true",

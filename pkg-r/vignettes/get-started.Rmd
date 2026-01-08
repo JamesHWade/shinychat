@@ -55,22 +55,22 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup, echo=FALSE}
-library(shinychat)
+library(dowshinychat)
 ```
 
-This article will cover how to build a chatbot powered by a Large Language Model (LLM) using shinychat and [ellmer](https://ellmer.tidyverse.org/). ellmer will handle connecting to and communicating with the model, while shinychat will handle the user interface for your chatbot. 
+This article will cover how to build a chatbot powered by a Large Language Model (LLM) using dowshinychat and [ellmer](https://ellmer.tidyverse.org/). ellmer will handle connecting to and communicating with the model, while dowshinychat will handle the user interface for your chatbot. 
 
-You will need to install both shinychat and ellmer. 
+You will need to install both dowshinychat and ellmer. 
 
 ```r
-install.packages(c("shinychat", "ellmer"))
+install.packages(c("dowshinychat", "ellmer"))
 ```
 
 ## Setup
 
 ### Choose a model
 
-First, choose a model to power your chatbot. ellmer and shinychat support a [wide variety](https://ellmer.tidyverse.org/#providers) of LLM providers including Anthropic, OpenAI, Vertex, Snowflake, Groq, Perplexity, and more.
+First, choose a model to power your chatbot. ellmer and dowshinychat support a [wide variety](https://ellmer.tidyverse.org/#providers) of LLM providers including Anthropic, OpenAI, Vertex, Snowflake, Groq, Perplexity, and more.
 
 With ellmer, you specify the LLM provider by choosing the corresponding `chat_*()` function, e.g., `chat_anthropic()`,  `chat_openai()`, etc. This makes it easy to swap out the chat provider to a different one at any time. 
 
@@ -104,7 +104,7 @@ Copy and paste the code into an R script, switching out `ellmer::chat_openai()` 
 
 ```r
 library(shiny)
-library(shinychat)
+library(dowshinychat)
 
 ui <- bslib::page_fluid(
   chat_ui("chat")
@@ -124,7 +124,7 @@ shinyApp(ui, server)
 
 Congrats, you now have a chat interface powered by an LLM of your choice! 🎉
 
-```{r, echo=FALSE, fig.cap="Screenshot of a conversation using shinychat.", fig.align='center', out.extra='class="rounded shadow"', out.height='50%'}
+```{r, echo=FALSE, fig.cap="Screenshot of a conversation using dowshinychat.", fig.align='center', out.extra='class="rounded shadow"', out.height='50%'}
 knitr::include_graphics("images/chat-quick-start.png")
 ```
 
@@ -134,7 +134,7 @@ Let's take a closer look at the code in `app.R`.
 
 ```r
 library(shiny)
-library(shinychat)
+library(dowshinychat)
 
 ui <- bslib::page_fluid(
   # Add a chat UI element
@@ -155,9 +155,9 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
-A shinychat chatbot includes three core steps:
+A dowshinychat chatbot includes three core steps:
 
-1. **Create a chat UI element** with [`chat_ui()`](https://posit-dev.github.io/shinychat/reference/chat_ui.html).
+1. **Create a chat UI element** with [`chat_ui()`](https://posit-dev.github.io/dowshinychat/reference/chat_ui.html).
 
 2. **Initialize a chat** with a `chat_*()` function, like `chat_openai()`, in the server function. Use a different `chat_*()` function (`chat_ollama()`, `chat_anthropic()`, etc.) to use a different model provider. You can also use the `system_prompt` argument to supply a [system prompt](https://ellmer.tidyverse.org/articles/prompt-design.html). 
 
@@ -263,7 +263,7 @@ It can also be useful to place the chat in a sidebar, to free up the main panel 
 ```r
 library(shiny)
 library(bslib)
-library(shinychat)
+library(dowshinychat)
 
 ui <- bslib::page_sidebar(
   sidebar = sidebar(
@@ -305,7 +305,7 @@ Embedding the chat component inside a `card()` can help visually separate the ch
 ```r
 library(shiny)
 library(bslib)
-library(shinychat)
+library(dowshinychat)
 
 ui <- page_fillable(
   card(

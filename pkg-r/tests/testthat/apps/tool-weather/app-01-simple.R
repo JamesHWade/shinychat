@@ -1,7 +1,7 @@
 library(shiny)
 library(bslib)
 library(ellmer)
-library(shinychat)
+library(dowshinychat)
 library(weathR)
 
 get_weather_forecast <- tool(

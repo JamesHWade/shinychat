@@ -46,8 +46,8 @@ in \code{\link[=chat_ui]{chat_ui()}}.}
 \value{
 \itemize{
 \item \code{chat_app()} returns a \code{\link[shiny:shinyApp]{shiny::shinyApp()}} object.
-\item \code{chat_mod_ui()} returns the UI for a shinychat module.
-\item \code{chat_mod_server()} includes the shinychat module server logic, and
+\item \code{chat_mod_ui()} returns the UI for a dowshinychat module.
+\item \code{chat_mod_server()} includes the dowshinychat module server logic, and
 returns a list containing:
 \itemize{
 \item \code{last_input}: A reactive value containing the last user input.
@@ -100,10 +100,10 @@ chat_app(client)
 # Inside a Shiny app ----
 library(shiny)
 library(bslib)
-library(shinychat)
+library(dowshinychat)
 
 ui <- page_fillable(
-  titlePanel("shinychat example"),
+  titlePanel("dowshinychat example"),
 
   layout_columns(
     card(

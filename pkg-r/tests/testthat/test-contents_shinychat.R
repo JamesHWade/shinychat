@@ -1,38 +1,38 @@
-test_that("opt_shinychat_tool_display handles options and environment variables", {
-  withr::local_options(list(shinychat.tool_display = NULL))
+test_that("opt_dowshinychat_tool_display handles options and environment variables", {
+  withr::local_options(list(dowshinychat.tool_display = NULL))
   withr::local_envvar(list(SHINYCHAT_TOOL_DISPLAY = NULL))
 
   # Default behavior
-  with_shinychat_tool_display({
-    expect_equal(opt_shinychat_tool_display(), "rich")
+  with_dowshinychat_tool_display({
+    expect_equal(opt_dowshinychat_tool_display(), "rich")
   })
 
   # Option setting
-  with_shinychat_tool_display(opt = "basic", {
-    expect_equal(opt_shinychat_tool_display(), "basic")
+  with_dowshinychat_tool_display(opt = "basic", {
+    expect_equal(opt_dowshinychat_tool_display(), "basic")
   })
 
   # Environment variable
-  with_shinychat_tool_display(envvar = "none", {
-    expect_equal(opt_shinychat_tool_display(), "none")
+  with_dowshinychat_tool_display(envvar = "none", {
+    expect_equal(opt_dowshinychat_tool_display(), "none")
   })
 
   # Option takes precedence over env var
-  with_shinychat_tool_display(envvar = "none", opt = "basic", {
-    expect_equal(opt_shinychat_tool_display(), "basic")
+  with_dowshinychat_tool_display(envvar = "none", opt = "basic", {
+    expect_equal(opt_dowshinychat_tool_display(), "basic")
   })
 
   # Invalid values
-  with_shinychat_tool_display(envvar = "invalid", {
+  with_dowshinychat_tool_display(envvar = "invalid", {
     expect_snapshot(
       error = TRUE,
-      opt_shinychat_tool_display()
+      opt_dowshinychat_tool_display()
     )
   })
-  with_shinychat_tool_display(opt = "invalid", {
+  with_dowshinychat_tool_display(opt = "invalid", {
     expect_snapshot(
       error = TRUE,
-      opt_shinychat_tool_display()
+      opt_dowshinychat_tool_display()
     )
   })
 })
@@ -42,7 +42,7 @@ test_that("basic Content handling works", {
     "ContentHTML",
     parent = ellmer::ContentText
   )
-  S7::method(contents_shinychat, ContentHTML) <- function(content) {
+  S7::method(contents_dowshinychat, ContentHTML) <- function(content) {
     shiny::HTML(content@text)
   }
 
@@ -50,36 +50,36 @@ test_that("basic Content handling works", {
     "ContentMarkdown",
     parent = ellmer::ContentText
   )
-  S7::method(contents_shinychat, ContentMarkdown) <- function(content) {
+  S7::method(contents_dowshinychat, ContentMarkdown) <- function(content) {
     content@text
   }
 
   # Test HTML content
   html_content <- ContentHTML(HTML("<p>test</p>"))
   expect_equal(
-    as.character(contents_shinychat(html_content)),
+    as.character(contents_dowshinychat(html_content)),
     "<p>test</p>"
   )
 
   # Test Markdown content
   md_content <- ContentMarkdown("**test**")
-  expect_equal(contents_shinychat(md_content), "**test**")
+  expect_equal(contents_dowshinychat(md_content), "**test**")
 
   # Test Text content
   text_content <- ellmer::ContentText("test")
-  expect_equal(contents_shinychat(text_content), "test")
+  expect_equal(contents_dowshinychat(text_content), "test")
 })
 
 test_that("ContentToolRequest returns NULL when display is disabled", {
   # Should return NULL when display is none
-  with_shinychat_tool_display(opt = "none", {
+  with_dowshinychat_tool_display(opt = "none", {
     request <- new_tool_request()
-    expect_null(contents_shinychat(request))
+    expect_null(contents_dowshinychat(request))
   })
 })
 
 test_that("ContentToolRequest rich display", {
-  local_shinychat_tool_display(opt = "rich")
+  local_dowshinychat_tool_display(opt = "rich")
 
   request <- new_tool_request(
     id = "test-123",
@@ -87,8 +87,8 @@ test_that("ContentToolRequest rich display", {
     arguments = list(`_intent` = "Check weather", location = "NYC")
   )
 
-  res <- contents_shinychat(request)
-  expect_s3_class(res, "shinychat_tool_request")
+  res <- contents_dowshinychat(request)
+  expect_s3_class(res, "dowshinychat_tool_request")
   expect_equal(res$request_id, "test-123")
   expect_equal(res$tool_name, "weather")
   expect_equal(res$intent, "Check weather")
@@ -109,42 +109,42 @@ test_that("ContentToolRequest rich display", {
 })
 
 test_that("ContentToolRequest handles tool annotations", {
-  local_shinychat_tool_display(opt = "rich")
+  local_dowshinychat_tool_display(opt = "rich")
 
   tool <- new_tool(
     name = "weather",
     annotations = list(title = "Weather Tool")
   )
   request <- new_tool_request(tool = tool)
-  res <- contents_shinychat(request)
+  res <- contents_dowshinychat(request)
 
-  expect_s3_class(res, "shinychat_tool_request")
+  expect_s3_class(res, "dowshinychat_tool_request")
   expect_equal(res$tool_title, "Weather Tool")
 })
 
 test_that("ContentToolResult requires an associated `@request` property", {
   expect_snapshot(
     error = TRUE,
-    contents_shinychat(new_tool_result(request = NULL))
+    contents_dowshinychat(new_tool_result(request = NULL))
   )
 })
 
 test_that("returns NULL for ContentToolResult when display is none", {
-  local_shinychat_tool_display(opt = "none")
+  local_dowshinychat_tool_display(opt = "none")
 
   base_request <- new_tool_request()
   result <- new_tool_result(request = base_request)
 
-  expect_null(contents_shinychat(result))
+  expect_null(contents_dowshinychat(result))
 })
 
 test_that("simple ContentToolResult are displayed correctly", {
-  local_shinychat_tool_display(opt = "rich")
+  local_dowshinychat_tool_display(opt = "rich")
 
   result <- new_tool_result(value = "Success!")
-  res <- contents_shinychat(result)
+  res <- contents_dowshinychat(result)
 
-  expect_s3_class(res, "shinychat_tool_result")
+  expect_s3_class(res, "dowshinychat_tool_result")
   expect_equal(res$request_id, result@request@id)
   expect_equal(res$tool_name, result@request@name)
   expect_equal(res$value, "Success!")
@@ -153,25 +153,25 @@ test_that("simple ContentToolResult are displayed correctly", {
 })
 
 test_that("errors in ContentToolResult are displayed correctly", {
-  local_shinychat_tool_display(opt = "rich")
+  local_dowshinychat_tool_display(opt = "rich")
 
   result <- new_tool_result(error = "Failed!")
-  res <- contents_shinychat(result)
+  res <- contents_dowshinychat(result)
 
-  expect_s3_class(res, "shinychat_tool_result")
+  expect_s3_class(res, "dowshinychat_tool_result")
   expect_equal(res$status, "error")
   expect_equal(res$value, "Failed!")
   expect_equal(res$value_type, "code")
 
   # basic and rich display are the same
   expect_equal(
-    with_shinychat_tool_display(opt = "basic", contents_shinychat(result)),
+    with_dowshinychat_tool_display(opt = "basic", contents_dowshinychat(result)),
     res
   )
 })
 
 test_that("ContentToolResult with custom text display", {
-  local_shinychat_tool_display(opt = "rich")
+  local_dowshinychat_tool_display(opt = "rich")
 
   result <- new_tool_result(
     value = "success",
@@ -183,8 +183,8 @@ test_that("ContentToolResult with custom text display", {
     list(value = "Success!", value_type = "text")
   )
 
-  res <- contents_shinychat(result)
-  expect_s3_class(res, "shinychat_tool_result")
+  res <- contents_dowshinychat(result)
+  expect_s3_class(res, "dowshinychat_tool_result")
   expect_equal(res$request_id, result@request@id)
   expect_equal(res$tool_name, result@request@name)
   expect_equal(res$status, "success")
@@ -204,7 +204,7 @@ test_that("ContentToolResult with custom text display", {
 })
 
 test_that("ContentToolResult with additional display options from result", {
-  local_shinychat_tool_display(opt = "rich")
+  local_dowshinychat_tool_display(opt = "rich")
 
   result <- new_tool_result(
     value = "test",
@@ -217,8 +217,8 @@ test_that("ContentToolResult with additional display options from result", {
       )
     )
   )
-  res <- contents_shinychat(result)
-  expect_s3_class(res, "shinychat_tool_result")
+  res <- contents_dowshinychat(result)
+  expect_s3_class(res, "dowshinychat_tool_result")
   expect_equal(res$value, "<p>test</p>")
   expect_equal(res$value_type, "html")
   expect_equal(res$show_request, NULL)
@@ -234,7 +234,7 @@ test_that("ContentToolResult with additional display options from result", {
 })
 
 test_that("ContentToolResult handles icon and dependencies from tool definition", {
-  local_shinychat_tool_display(opt = "rich")
+  local_dowshinychat_tool_display(opt = "rich")
 
   icon_dep <- htmltools::htmlDependency(
     name = "test",
@@ -253,8 +253,8 @@ test_that("ContentToolResult handles icon and dependencies from tool definition"
     extra = list(display = list(text = "test"))
   )
 
-  res <- contents_shinychat(result)
-  expect_s3_class(res, "shinychat_tool_result")
+  res <- contents_dowshinychat(result)
+  expect_s3_class(res, "dowshinychat_tool_result")
   expect_equal(res$icon, tool@annotations$icon)
 
   res_tags <- as.tags(res)
@@ -265,7 +265,7 @@ test_that("ContentToolResult handles icon and dependencies from tool definition"
 })
 
 test_that("ContentToolResult formats request_call correctly", {
-  local_shinychat_tool_display(opt = "rich")
+  local_dowshinychat_tool_display(opt = "rich")
 
   result <- new_tool_result(
     value = "test",
@@ -274,11 +274,11 @@ test_that("ContentToolResult formats request_call correctly", {
       arguments = list(x = 1, y = "test")
     )
   )
-  res <- contents_shinychat(result)
+  res <- contents_dowshinychat(result)
   expect_equal(res$request_call, 'test(x = 1, y = "test")')
 
   result@request@tool <- NULL
-  res_no_tool <- contents_shinychat(result)
+  res_no_tool <- contents_dowshinychat(result)
   expect_equal(
     jsonlite::fromJSON(res_no_tool$request_call),
     list(
@@ -309,7 +309,7 @@ test_that("get_tool_result_display handles invalid formats", {
 })
 
 test_that("tool_result_display basic format", {
-  local_shinychat_tool_display(opt = "basic")
+  local_dowshinychat_tool_display(opt = "basic")
   result <- new_tool_result(
     value = list(x = 1),
     extra = list(display = list(text = "ignored in basic mode"))
@@ -324,7 +324,7 @@ test_that("tool_result_display basic format", {
 })
 
 test_that("tool_result_display rich format", {
-  local_shinychat_tool_display(opt = "rich")
+  local_dowshinychat_tool_display(opt = "rich")
   result <- new_tool_result(
     value = "test",
     extra = list(
@@ -352,10 +352,10 @@ test_that("processes a Turn object", {
   )
 
   # Process turn contents
-  results <- contents_shinychat(turn)
+  results <- contents_dowshinychat(turn)
   expect_length(results, 3)
   expect_equal(results[[1]], "Hello")
-  expect_s3_class(results[[2]], "shinychat_tool_request")
+  expect_s3_class(results[[2]], "dowshinychat_tool_request")
   expect_equal(results[[3]], "World")
 })
 
@@ -372,7 +372,7 @@ test_that("consolidates adjacent turn types in a Chat object", {
     )
   ))
 
-  messages <- contents_shinychat(chat)
+  messages <- contents_dowshinychat(chat)
   expect_length(messages, 1)
   expect_equal(messages[[1]]$role, "assistant")
   expect_equal(messages[[1]]$content, "Hello\n\nWorld")
@@ -391,7 +391,7 @@ test_that("doesn't consolidate adjacent turns with different roles in a Chat obj
     )
   ))
 
-  messages <- contents_shinychat(chat)
+  messages <- contents_dowshinychat(chat)
   expect_length(messages, 2) # Previous consolidated message + 2 new messages
   expect_equal(messages[[1]]$role, "user")
   expect_equal(messages[[2]]$role, "assistant")
@@ -415,31 +415,31 @@ test_that("drops requests and moves results to assistant turn role in a Chat obj
     )
   ))
 
-  messages <- contents_shinychat(chat)
+  messages <- contents_dowshinychat(chat)
   expect_length(messages, 1)
   expect_equal(messages[[1]]$role, "assistant")
 
   # Verify tool requests are filtered but results appear
   expect_false(
-    some(messages[[1]]$content, inherits, "shinychat_tool_request")
+    some(messages[[1]]$content, inherits, "dowshinychat_tool_request")
   )
   expect_true(
-    some(messages[[1]]$content, inherits, "shinychat_tool_result")
+    some(messages[[1]]$content, inherits, "dowshinychat_tool_result")
   )
 })
 
 test_that("throws when a result does not have a `request` property", {
   expect_snapshot(
     error = TRUE,
-    contents_shinychat(new_tool_result(request = NULL))
+    contents_dowshinychat(new_tool_result(request = NULL))
   )
 })
 
 test_that("throws for invalid tool display option", {
-  withr::local_options(shinychat.tool_display = "invalid")
+  withr::local_options(dowshinychat.tool_display = "invalid")
   expect_snapshot(
     error = TRUE,
-    opt_shinychat_tool_display()
+    opt_dowshinychat_tool_display()
   )
 })
 
@@ -447,7 +447,7 @@ test_that("throws for invalid tool display ennvar", {
   withr::local_envvar(SHINYCHAT_TOOL_DISPLAY = "invalid")
   expect_snapshot(
     error = TRUE,
-    opt_shinychat_tool_display()
+    opt_dowshinychat_tool_display()
   )
 })
 
@@ -457,6 +457,6 @@ test_that("warns when `display` is not a list", {
     extra = list(display = htmltools::tags$p("test"))
   )
   expect_snapshot(
-    as.tags(contents_shinychat(result))
+    as.tags(contents_dowshinychat(result))
   )
 })

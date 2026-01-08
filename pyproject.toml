@@ -1,5 +1,5 @@
 [project]
-name = "shinychat"
+name = "dowshinychat"
 description = "An AI Chat interface for Shiny apps."
 readme = "pkg-py/README.md"
 requires-python = ">=3.10"
@@ -56,7 +56,7 @@ dev = [
 ]
 
 [tool.uv]
-upgrade-package = ["shinychat"]
+upgrade-package = ["dowshinychat"]
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
@@ -66,11 +66,11 @@ build-backend = "hatchling.build"
 skip-excluded-dirs = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["pkg-py/src/shinychat"]
+packages = ["pkg-py/src/dowshinychat"]
 include = ["py.typed"]
 
 [tool.hatch.build.targets.sdist]
-include = ["/pkg-py/src/shinychat"]
+include = ["/pkg-py/src/dowshinychat"]
 
 [tool.hatch.version]
 source = "vcs"
@@ -80,7 +80,7 @@ tag-pattern = "^py/(?:[\\w-]+-)?(?P<version>[vV]?\\d+(?:\\.\\d+){0,2}[^\\+]*)(?:
 git_describe_command = "git describe --dirty --tags --long --match 'py/v*'"
 
 [tool.hatch.build.hooks.vcs]
-version-file = "pkg-py/src/shinychat/__version.py"
+version-file = "pkg-py/src/dowshinychat/__version.py"
 
 [tool.pyright]
 include = ["pkg-py"]

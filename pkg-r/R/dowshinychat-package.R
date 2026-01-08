@@ -23,6 +23,6 @@ ignore_unused_imports <- function() {
 
 release_bullets <- function() {
   c(
-    "Check that shinychat js assets are up-to-date (`make js-build && make r-update-dist`)"
+    "Check that dowshinychat js assets are up-to-date (`make js-build && make r-update-dist`)"
   )
 }

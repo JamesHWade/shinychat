@@ -1,6 +1,6 @@
 from htmltools import Tag
 from shiny import App, Inputs, Outputs, Session, module, ui
-from shinychat import Chat, chat_ui
+from dowshinychat import Chat, chat_ui
 
 
 @module.ui

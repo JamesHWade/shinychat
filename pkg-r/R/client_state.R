@@ -84,9 +84,9 @@ method(client_set_state, S7::new_S3_class(c("Chat", "R6"))) <-
 method(client_set_ui, S7::new_S3_class(c("Chat", "R6"))) <-
   function(client, ..., id) {
     # TODO-future: Disable bookmarking when restoring. Leverage `tryCatch(finally={})`
-    # TODO-barret-future; In shinychat, make this a single/internal custom message call to send all the messages at once (and then scroll)
+    # TODO-barret-future; In dowshinychat, make this a single/internal custom message call to send all the messages at once (and then scroll)
 
-    msgs <- contents_shinychat(client)
+    msgs <- contents_dowshinychat(client)
     lapply(msgs, function(msg_turn) {
       is_list <- is.list(msg_turn$content) &&
         !inherits(msg_turn$content, c("shiny.tag", "shiny.taglist"))

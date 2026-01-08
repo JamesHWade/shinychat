@@ -3,7 +3,7 @@ import re
 from playwright.sync_api import Page, expect
 from shiny.playwright import controller
 from shiny.run import ShinyAppProc
-from shinychat.playwright import ChatController
+from dowshinychat.playwright import ChatController
 
 
 def test_validate_chat_stream_result(

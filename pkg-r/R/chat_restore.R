@@ -1,4 +1,4 @@
-#' Add Shiny bookmarking for shinychat
+#' Add Shiny bookmarking for dowshinychat
 #'
 #' @description
 #' Adds Shiny bookmarking hooks to save and restore the \pkg{ellmer} chat
@@ -29,7 +29,7 @@
 #' @examplesIf interactive()
 #' library(shiny)
 #' library(bslib)
-#' library(shinychat)
+#' library(dowshinychat)
 #'
 #' ui <- function(request) {
 #'   page_fillable(
@@ -69,7 +69,7 @@ chat_restore <- function(
   rlang::check_installed("ellmer")
   if (!(inherits(client, "R6") && inherits(client, "Chat"))) {
     rlang::abort(
-      "`client` must be an `ellmer::Chat()` object. If you would like to have {shinychat} support your own package, please submit a GitHub Issue at https://github.com/posit-dev/shinychat"
+      "`client` must be an `ellmer::Chat()` object. If you would like to have {dowshinychat} support your own package, please submit a GitHub Issue at https://github.com/posit-dev/dowshinychat"
     )
   }
   bookmark_on_input <- rlang::is_true(bookmark_on_input)
@@ -246,7 +246,7 @@ get_session_chat_bookmark_info <- function(session, id) {
     return(NULL)
   }
 
-  info <- session$userData$shinychat
+  info <- session$userData$dowshinychat
   key <- session$ns(id)
   return(info[[key]])
 }
@@ -255,10 +255,10 @@ set_session_chat_bookmark_info <- function(session, id, value) {
     return(NULL)
   }
 
-  if (is.null(session$userData$shinychat)) {
-    session$userData$shinychat <- list()
+  if (is.null(session$userData$dowshinychat)) {
+    session$userData$dowshinychat <- list()
   }
-  session$userData$shinychat[[session$ns(id)]] <- value
+  session$userData$dowshinychat[[session$ns(id)]] <- value
 
   invisible(session)
 }

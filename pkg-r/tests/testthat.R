@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(shinychat)
+library(dowshinychat)
 
-test_check("shinychat")
+test_check("dowshinychat")

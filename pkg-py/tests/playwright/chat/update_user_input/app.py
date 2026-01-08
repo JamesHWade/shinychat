@@ -1,6 +1,6 @@
 from shiny import reactive
 from shiny.express import input, ui
-from shinychat.express import Chat
+from dowshinychat.express import Chat
 
 ui.page_opts(fillable=True)
 

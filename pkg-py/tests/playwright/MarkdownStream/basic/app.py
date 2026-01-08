@@ -3,7 +3,7 @@ from pathlib import Path
 
 from shiny import reactive
 from shiny.express import render, ui
-from shinychat.express import MarkdownStream
+from dowshinychat.express import MarkdownStream
 
 # Read in the py-shiny README.md file
 readme = Path(__file__).parent / "README.md"

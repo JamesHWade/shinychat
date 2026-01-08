@@ -36,7 +36,7 @@ Update the user input of a chat control
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 library(shiny)
 library(bslib)
-library(shinychat)
+library(dowshinychat)
 
 ui <- page_fillable(
   chat_ui("chat"),

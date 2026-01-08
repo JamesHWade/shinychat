@@ -1,26 +1,26 @@
-# shinychat <a href="https://posit-dev.github.io/shinychat/r/"><img src="man/figures/logo.svg" align="right" height="138" alt="shinychat for R website" /></a>
+# dowshinychat <a href="https://posit-dev.github.io/dowshinychat/r/"><img src="man/figures/logo.svg" align="right" height="138" alt="dowshinychat for R website" /></a>
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/posit-dev/shinychat/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/posit-dev/shinychat/actions/workflows/R-CMD-check.yaml)
-[![CRAN status](https://www.r-pkg.org/badges/version/shinychat)](https://CRAN.R-project.org/package=shinychat)
-[![shinychat status badge](https://posit-dev.r-universe.dev/shinychat/badges/version)](https://posit-dev.r-universe.dev/shinychat)
+[![R-CMD-check](https://github.com/posit-dev/dowshinychat/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/posit-dev/dowshinychat/actions/workflows/R-CMD-check.yaml)
+[![CRAN status](https://www.r-pkg.org/badges/version/dowshinychat)](https://CRAN.R-project.org/package=dowshinychat)
+[![dowshinychat status badge](https://posit-dev.r-universe.dev/dowshinychat/badges/version)](https://posit-dev.r-universe.dev/dowshinychat)
 <!-- badges: end -->
 
-**shinychat** provides a [Shiny](https://shiny.posit.co/) toolkit for building generative AI applications like chatbots and [streaming content](https://posit-dev.github.io/shinychat/r/reference/markdown_stream.html). It's designed to work alongside the [ellmer](https://ellmer.tidyverse.org/) package, which handles response generation.
+**dowshinychat** provides a [Shiny](https://shiny.posit.co/) toolkit for building generative AI applications like chatbots and [streaming content](https://posit-dev.github.io/dowshinychat/r/reference/markdown_stream.html). It's designed to work alongside the [ellmer](https://ellmer.tidyverse.org/) package, which handles response generation.
 
 ## Installation
 
-You can install shinychat from CRAN with:
+You can install dowshinychat from CRAN with:
 
 ``` r
-install.packages("shinychat")
+install.packages("dowshinychat")
 ```
 
-Or, install the development version of shinychat from [GitHub](https://github.com/) with:
+Or, install the development version of dowshinychat from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("pak")
-pak::pak("posit-dev/shinychat/pkg-r")
+pak::pak("posit-dev/dowshinychat/pkg-r")
 ```
 
 ## Example
@@ -31,7 +31,7 @@ You'll also need to install the [ellmer](https://ellmer.tidyverse.org/) package 
 
 ```r
 library(shiny)
-library(shinychat)
+library(dowshinychat)
 
 ui <- bslib::page_fillable(
   chat_ui(
@@ -60,4 +60,4 @@ shinyApp(ui, server)
 
 ## Next steps
 
-Ready to start building a chatbot with shinychat? See [Get Started](https://posit-dev.github.io/shinychat/r/articles/get-started.html) to learn more.
+Ready to start building a chatbot with dowshinychat? See [Get Started](https://posit-dev.github.io/dowshinychat/r/articles/get-started.html) to learn more.

@@ -3,9 +3,9 @@ import pandas as pd
 from chatlas import ChatOpenAI, ContentToolResult
 from shiny.express import ui
 from shiny.ui import value_box
-from shinychat import message_content_chunk
-from shinychat.express import Chat
-from shinychat.types import ChatMessage
+from dowshinychat import message_content_chunk
+from dowshinychat.express import Chat
+from dowshinychat.types import ChatMessage
 
 
 class WeatherToolResult(ContentToolResult):

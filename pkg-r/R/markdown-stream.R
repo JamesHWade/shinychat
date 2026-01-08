@@ -1,8 +1,8 @@
 markdown_stream_deps <- function() {
   htmltools::htmlDependency(
-    "shinychat",
-    utils::packageVersion("shinychat"),
-    package = "shinychat",
+    "dowshinychat",
+    utils::packageVersion("dowshinychat"),
+    package = "dowshinychat",
     src = "lib/shiny",
     script = list(src = "markdown-stream/markdown-stream.js", type = "module"),
     stylesheet = "markdown-stream/markdown-stream.css",
@@ -101,7 +101,7 @@ output_markdown_stream <- function(
 #' library(shiny)
 #' library(coro)
 #' library(bslib)
-#' library(shinychat)
+#' library(dowshinychat)
 #'
 #' # Define a generator that yields a random response
 #' # (imagine this is a more sophisticated AI generator)

@@ -1,6 +1,6 @@
 library(shiny)
 library(ellmer)
-library(shinychat)
+library(dowshinychat)
 
 rlang::check_installed("ellmer", version = "0.3.0")
 
@@ -14,7 +14,7 @@ TOOL_OPTS <- list(
 )
 
 ui <- bslib::page_fillable(
-  shinychat::chat_mod_ui(
+  dowshinychat::chat_mod_ui(
     "chat",
     messages = list(list(
       role = "assistant",
