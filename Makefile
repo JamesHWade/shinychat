@@ -207,16 +207,16 @@ py-build:   ## [py] Build python package
 	uv build
 
 .PHONY: py-update-dist
-py-update-dist: ## [py] Update shinychat web assets
+py-update-dist: ## [py] Update dowshinychat web assets
 	@echo ""
-	@echo "🔄 Updating shinychat web assets"
-	if [ -d $(PATH_PKG_PY)/src/shinychat/www ]; then \
-		rm -rf $(PATH_PKG_PY)/src/shinychat/www; \
+	@echo "🔄 Updating dowshinychat web assets"
+	if [ -d $(PATH_PKG_PY)/src/dowshinychat/www ]; then \
+		rm -rf $(PATH_PKG_PY)/src/dowshinychat/www; \
 	fi
-	mkdir -p $(PATH_PKG_PY)/src/shinychat/www
-	cp -r $(PATH_PKG_JS)/dist/chat $(PATH_PKG_PY)/src/shinychat/www/
-	cp -r $(PATH_PKG_JS)/dist/markdown-stream $(PATH_PKG_PY)/src/shinychat/www/
-	(git rev-parse HEAD) > "$(PATH_PKG_PY)/src/shinychat/www/GIT_VERSION"
+	mkdir -p $(PATH_PKG_PY)/src/dowshinychat/www
+	cp -r $(PATH_PKG_JS)/dist/chat $(PATH_PKG_PY)/src/dowshinychat/www/
+	cp -r $(PATH_PKG_JS)/dist/markdown-stream $(PATH_PKG_PY)/src/dowshinychat/www/
+	(git rev-parse HEAD) > "$(PATH_PKG_PY)/src/dowshinychat/www/GIT_VERSION"
 
 .PHONY: help
 help:  ## Show help messages for make targets
