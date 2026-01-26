@@ -384,7 +384,15 @@ class ChatMessage extends LightElement {
 
   #getTextContent(): string {
     const stream = this.querySelector("shiny-markdown-stream")
-    return stream?.textContent?.trim() || this.content
+    if (!stream) return this.content
+
+    // Clone the stream and remove tool elements to exclude them from copied text
+    const clone = stream.cloneNode(true) as HTMLElement
+    clone
+      .querySelectorAll("shiny-tool-request, shiny-tool-result")
+      .forEach((el) => el.remove())
+
+    return clone.textContent?.trim() || this.content
   }
 
   #onCopyClick(): void {
