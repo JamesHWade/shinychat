@@ -378,6 +378,26 @@ shiny-chat-input {
   display: none;
 }
 
+/* Embedded Shiny modules in chat messages */
+.chat-embedded-module {
+  width: 100%;
+
+  // Ensure Shiny outputs fill their container properly
+  .shiny-plot-output,
+  .shiny-html-output,
+  .html-widget-output {
+    width: 100%;
+  }
+
+  // Give embedded modules some breathing room from surrounding text
+  &:not(:first-child) {
+    margin-top: 0.5rem;
+  }
+  &:not(:last-child) {
+    margin-bottom: 0.5rem;
+  }
+}
+
 /* External link dialog styling */
 .shinychat-external-link-dialog {
   padding: 0;
