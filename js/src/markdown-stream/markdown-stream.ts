@@ -298,7 +298,7 @@ class MarkdownElement extends LightElement {
 
       // Possibly scroll to bottom after content has been added
       this.#isContentBeingAdded = false
-      this.#maybeScrollToBottom()
+      this.#scheduleScrollToBottom()
 
       if (this.onContentChange) {
         try {
@@ -524,7 +524,17 @@ class MarkdownElement extends LightElement {
   }
 
   #onMaybeScrollToBottom = (): void => {
-    this.#maybeScrollToBottom()
+    this.#scheduleScrollToBottom()
+  }
+
+  #scrollRAF: number | null = null
+
+  #scheduleScrollToBottom(): void {
+    if (this.#scrollRAF !== null) return
+    this.#scrollRAF = requestAnimationFrame(() => {
+      this.#scrollRAF = null
+      this.#maybeScrollToBottom()
+    })
   }
 
   #maybeScrollToBottom(): void {
@@ -538,6 +548,10 @@ class MarkdownElement extends LightElement {
   }
 
   #cleanup(): void {
+    if (this.#scrollRAF !== null) {
+      cancelAnimationFrame(this.#scrollRAF)
+      this.#scrollRAF = null
+    }
     this.#scrollableElement?.removeEventListener("scroll", this.#onScroll)
     this.#scrollableElement = null
     this.#isUserScrolled = false
