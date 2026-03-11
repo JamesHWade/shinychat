@@ -26,15 +26,16 @@ method(client_get_state, S7::new_S3_class(c("Chat", "R6"))) <-
       ellmer::contents_record
     )
 
-    if (is_url_bookmarkstore()) {
-      recorded_turns <- lapply(
-        recorded_turns,
-        function(turn) {
-          turn$props$json <- NULL
-          turn
-        }
-      )
-    }
+    # Strip raw API response JSON from turns — it's large, not needed for
+    # replay, and can contain tool definitions with special characters that
+    # break jsonlite::unserializeJSON() via parse() on deserialization.
+    recorded_turns <- lapply(
+      recorded_turns,
+      function(turn) {
+        turn$props$json <- NULL
+        turn
+      }
+    )
 
     # Pre-serialize the contents so that when shiny:::toJSON() is called, it is stable.
     # jsonlite::toJSON() is not stable as it is a lossy serialization. In addition, jsonlite::fromJSON() (which shiny:::safeFromJSON() uses) is not stable as it tries to make everything a data.frame.
@@ -69,7 +70,20 @@ method(client_set_state, S7::new_S3_class(c("Chat", "R6"))) <-
       base64enc::base64decode(state_str),
       asChar = TRUE
     )
-    recorded_turns <- jsonlite::unserializeJSON(state_json)
+
+    recorded_turns <- tryCatch(
+      jsonlite::unserializeJSON(state_json),
+      error = function(e) {
+        rlang::warn(
+          c(
+            "Failed to deserialize chat state, starting with empty history.",
+            "i" = "Chat history from the previous session could not be restored.",
+            "x" = conditionMessage(e)
+          )
+        )
+        list()
+      }
+    )
 
     replayed_turns <- lapply(
       recorded_turns,
