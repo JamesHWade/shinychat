@@ -10,13 +10,6 @@ client_set_ui <- new_generic(
   }
 )
 
-is_server_bookmarkstore <- function() {
-  shiny::getShinyOption("bookmarkStore", "") == "server"
-}
-is_url_bookmarkstore <- function() {
-  shiny::getShinyOption("bookmarkStore", "") == "url"
-}
-
 method(client_get_state, S7::new_S3_class(c("Chat", "R6"))) <-
   function(client) {
     # Do not record the client object itself. This would be a security leak.
