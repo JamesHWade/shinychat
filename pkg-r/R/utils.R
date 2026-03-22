@@ -20,6 +20,17 @@ strip_ansi <- function(text) {
 }
 
 
+dowshinychat_deps <- function() {
+  htmltools::htmlDependency(
+    "dowshinychat",
+    utils::packageVersion("dowshinychat"),
+    package = "dowshinychat",
+    src = "lib/shiny",
+    script = list(src = "shinychat.js", type = "module"),
+    stylesheet = "shinychat.css"
+  )
+}
+
 drop_nulls <- function(x) {
   x[!vapply(x, is.null, FUN.VALUE = logical(1))]
 }

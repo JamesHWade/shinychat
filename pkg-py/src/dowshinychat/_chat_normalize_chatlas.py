@@ -84,6 +84,7 @@ class ToolRequestComponent(ToolCardComponent):
 
         return Tag(
             "shiny-tool-request",
+            data_shinychat_react=True,
             request_id=self.request_id,
             tool_name=self.tool_name,
             tool_title=self.tool_title,
@@ -126,6 +127,12 @@ class ToolResultComponent(ToolCardComponent):
      Any other value defaults to markdown rendering.
     """
 
+    footer: TagChild = None
+    "Optional HTML content to display in the card footer (below the card body)."
+
+    full_screen: bool = False
+    "Controls whether a fullscreen toggle button is displayed on the card."
+
     def tagify(self):
         icon_ui = TagList(self.icon).render()
 
@@ -137,8 +144,11 @@ class ToolResultComponent(ToolCardComponent):
                 "dependencies": [],
             }
 
+        footer_ui = TagList(self.footer).render()
+
         return Tag(
             "shiny-tool-result",
+            data_shinychat_react=True,
             request_id=self.request_id,
             tool_name=self.tool_name,
             tool_title=self.tool_title,
@@ -150,8 +160,11 @@ class ToolResultComponent(ToolCardComponent):
             value_type=self.value_type,
             show_request="" if self.show_request else None,
             expanded="" if self.expanded else None,
+            footer=footer_ui["html"] if self.footer else None,
+            full_screen="" if self.full_screen else None,
             *icon_ui["dependencies"],
             *value_ui["dependencies"],
+            *footer_ui["dependencies"],
         )
 
 
@@ -196,12 +209,16 @@ class ToolResultDisplay(BaseModel):
         Whether to show the tool request inside the tool result container.
     open
         Whether or not the tool result details are expanded by default.
+    full_screen
+        Whether or not to display a fullscreen toggle button on the card.
     html
         Custom HTML content (to use in place of the default result display).
     markdown
         Custom Markdown string (to use in place of the default result display).
     text
         Custom plain text string (to use in place of the default result display).
+    footer
+        Optional HTML content to display in the card footer (below the card body).
     """
 
     title: Optional[str] = None
@@ -209,16 +226,18 @@ class ToolResultDisplay(BaseModel):
     html: TagChild = None
     show_request: bool = True
     open: bool = False
+    full_screen: bool = False
     markdown: Optional[str] = None
     text: Optional[str] = None
+    footer: TagChild = None
 
     model_config = {"arbitrary_types_allowed": True}
 
-    @field_serializer("html", "icon")
+    @field_serializer("html", "icon", "footer")
     def _serialize_html_icon(self, value: TagChild):
         return TagList(value).render()
 
-    @field_validator("html", "icon", mode="before")
+    @field_validator("html", "icon", "footer", mode="before")
     @classmethod
     def _validate_html_icon(cls, value: TagChild) -> TagChild:
         if isinstance(value, dict):
@@ -313,6 +332,8 @@ def tool_result_contents(x: "ContentToolResult") -> Tagifiable:
         intent=intent,
         show_request=display.show_request,
         expanded=display.open,
+        footer=display.footer,
+        full_screen=display.full_screen,
     )
 
 

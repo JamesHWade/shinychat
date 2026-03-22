@@ -171,19 +171,24 @@ as.tags.dowshinychat_tool_card <- function(x, ...) {
   if (!is.null(x$icon) && !is.character(x$icon)) {
     x$icon <- as.tags(x$icon)
   }
+  if (!is.null(x$footer) && !is.character(x$footer)) {
+    x$footer <- as.tags(x$footer)
+  }
 
   names(x) <- gsub("_", "-", names(x))
 
   deps <- list(
     htmltools::findDependencies(x$value),
     htmltools::findDependencies(x$icon),
-    chat_deps()
+    htmltools::findDependencies(x$footer),
+    dowshinychat_deps()
   )
 
-  htmltools::tag(
+  tag <- htmltools::tag(
     tag_name,
     dots_list(type = NULL, !!!x, !!!deps, .homonyms = "first")
   )
+  htmltools::tagAppendAttributes(tag, `data-shinychat-react` = NA)
 }
 
 #' @export
@@ -273,6 +278,8 @@ S7::method(contents_shinychat, ellmer::ContentToolResult) <- function(content) {
     intent = content@request@arguments[["_intent"]],
     show_request = if (!isFALSE(display$show_request)) NA,
     expanded = if (isTRUE(display$open)) NA,
+    full_screen = if (isTRUE(display$full_screen)) NA,
+    footer = display$footer,
     !!!tool_result_display(content, display)
   )
 }
@@ -290,24 +297,29 @@ get_tool_result_display <- function(content) {
   if (
     inherits(display, c("html", "shiny.tag", "shiny.tag.list", "htmlwidgets"))
   ) {
-    cli::cli_warn(c(
-      invalid_display_fmt,
-      "i" = "To display HTML content for tool results in {.pkg shinychat}, create a tool result with {.code extra = list(display = list(html = ...))}.",
-      "i" = "You can also use {.code markdown} or {.code text} items in {.code display} to show Markdown or plain text, respectively."
-    ))
+    cli::cli_warn(
+      c(
+        invalid_display_fmt,
+        "i" = "To display HTML content for tool results in {.pkg shinychat}, create a tool result with {.code extra = list(display = list(html = ...))}.",
+        "i" = "You can also use {.code markdown} or {.code text} items in {.code display} to show Markdown or plain text, respectively."
+      )
+    )
     return(list())
   }
 
   # fmt: skip
   expected_fields <- c(
-    "html", "markdown", "text", "show_request", "open", "title", "icon"
+    "html", "markdown", "text", "show_request", "open", "full_screen", "title", "icon",
+    "footer"
   )
 
   if (!is.list(display)) {
-    cli::cli_warn(c(
-      invalid_display_fmt,
-      "x" = "Expected a list with fields {.or {.var {expected_fields}}}, not {.obj_type_friendly {display}}."
-    ))
+    cli::cli_warn(
+      c(
+        invalid_display_fmt,
+        "x" = "Expected a list with fields {.or {.var {expected_fields}}}, not {.obj_type_friendly {display}}."
+      )
+    )
     return(list())
   }
 
@@ -355,7 +367,6 @@ tool_string <- function(x) {
     jsonlite::toJSON(x@value, auto_unbox = TRUE, pretty = 2)
   }
 }
-
 
 S7::method(contents_shinychat, ellmer::Turn) <- function(content) {
   # Process all contents in the turn, filtering out empty results

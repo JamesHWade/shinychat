@@ -39,7 +39,44 @@ test_that("Chat component markup", {
     )
   })
 
+  # Initial messages with react elements are island-split
+  expect_snapshot({
+    react_tag <- tags$div("react", `data-shinychat-react` = NA)
+    chat_ui(
+      "chat",
+      messages = list(
+        tagList(tags$div("before"), react_tag, tags$div("after"))
+      )
+    )
+  })
+
   # TODO: it'd be nice to mock the shinyChatMessage custom messages
+})
+
+test_that("chat_ui with file_input", {
+  expect_snapshot(chat_ui("chat", file_input = TRUE))
+})
+
+test_that("chat_ui with slash_commands", {
+  expect_snapshot(
+    chat_ui(
+      "chat",
+      slash_commands = list(
+        list(name = "clear", description = "Clear chat", type = "client", client_action = "clear_messages"),
+        list(name = "help", description = "Show help", type = "server")
+      )
+    )
+  )
+})
+
+test_that("chat_ui with audio_input", {
+  expect_snapshot(chat_ui("chat", audio_input = TRUE))
+  expect_snapshot(chat_ui("chat", audio_input = "raw"))
+})
+
+test_that("chat_ui with message_actions", {
+  expect_snapshot(chat_ui("chat", message_actions = TRUE))
+  expect_snapshot(chat_ui("chat", message_actions = c("copy", "feedback")))
 })
 
 test_that("chat_append_stream() returns the stream contents as string if all text", {

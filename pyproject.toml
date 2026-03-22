@@ -27,7 +27,7 @@ providers = [
     "anthropic;python_version>='3.11'",
     "chatlas[mcp]>=0.12.0",
     "pydantic",
-    "google-generativeai",
+    "google-genai",
     "langchain-core>=1.0.0",
     "ollama>=0.4.0",
     "openai",
@@ -85,6 +85,19 @@ version-file = "pkg-py/src/dowshinychat/__version.py"
 [tool.pyright]
 include = ["pkg-py"]
 exclude = ["pkg-py/_dev"]
+
+[tool.pytest.ini_options]
+testpaths = ["pkg-py/tests"]
+
+[tool.coverage.run]
+source = ["pkg-py/src/shinychat"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "if TYPE_CHECKING:",
+    "pragma: no cover",
+]
 
 [tool.tox]
 legacy_tox_ini = """

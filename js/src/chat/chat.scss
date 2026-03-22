@@ -30,9 +30,7 @@ shiny-chat-container {
     text-decoration-line: underline;
     text-decoration-style: dotted;
     text-decoration-thickness: 2px;
-    text-underline-offset: 2px;
     text-underline-offset: 4px;
-    text-decoration-thickness: 2px;
 
     padding-inline: 2px;
 
@@ -62,7 +60,7 @@ shiny-chat-container {
   }
 }
 
-shiny-chat-messages {
+.shiny-chat-messages {
   display: flex;
   flex-direction: column;
   gap: 2rem;
@@ -75,7 +73,9 @@ shiny-chat-messages {
   margin-right: calc(-1 * var(--_scroll-margin));
 }
 
-shiny-chat-message {
+// React renders messages as <div class="shiny-chat-message"> (not custom elements),
+// so we use class selectors here.
+.shiny-chat-message {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 1rem;
@@ -122,155 +122,31 @@ shiny-chat-message {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
-    align-self: center; /* Vertically center the wrapper in the grid cell */
-  }
-
-  // Message action bar
-  .message-actions {
-    display: flex;
-    gap: 0.25rem;
-    opacity: 0;
-    transition: opacity 0.15s ease-in-out;
-  }
-
-  &:hover .message-actions,
-  &:focus-within .message-actions {
-    opacity: 1;
-  }
-
-  .message-action-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    border: none;
-    border-radius: 6px;
-    background-color: transparent;
-    color: var(--bs-secondary-color, #6c757d);
-    cursor: pointer;
-    transition:
-      background-color 0.15s ease-in-out,
-      color 0.15s ease-in-out;
-
-    &:hover {
-      background-color: var(--bs-tertiary-bg, #f8f9fa);
-      color: var(--bs-body-color, #212529);
-    }
-
-    &:focus-visible {
-      outline: 2px solid var(--bs-primary, #007bc2);
-      outline-offset: 1px;
-    }
-
-    &.success {
-      color: var(--bs-success, #198754);
-    }
-
-    &.active {
-      color: var(--bs-primary, #007bc2);
-      background-color: rgba(var(--bs-primary-rgb, 0, 123, 194), 0.1);
-    }
-
-    svg {
-      width: 16px;
-      height: 16px;
-    }
-  }
-
-  .message-action-more-wrapper {
-    position: relative;
-  }
-
-  .message-action-menu {
-    position: absolute;
-    right: 0;
-    z-index: 1000;
-    min-width: 160px;
-    padding: 0.25rem 0;
-    background-color: var(--bs-body-bg, #fff);
-    border: var(--shiny-chat-border);
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-
-    &--above {
-      bottom: 100%;
-      margin-bottom: 0.25rem;
-    }
-
-    &--below {
-      top: 100%;
-      margin-top: 0.25rem;
-    }
-  }
-
-  .message-action-menu-item {
-    display: block;
-    width: 100%;
-    padding: 0.5rem 1rem;
-    border: none;
-    background-color: transparent;
-    color: var(--bs-body-color, #212529);
-    text-align: left;
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: background-color 0.15s ease-in-out;
-
-    &:hover {
-      background-color: var(--bs-tertiary-bg, #f8f9fa);
-    }
-
-    &:focus-visible {
-      outline: none;
-      background-color: var(--bs-tertiary-bg, #f8f9fa);
-    }
-  }
-}
-
-// Dark theme support
-[data-bs-theme="dark"] {
-  shiny-chat-message {
-    .message-action-btn:hover {
-      background-color: var(--bs-tertiary-bg, #2b3035);
-    }
-
-    .message-action-menu {
-      background-color: var(--bs-body-bg, #212529);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    }
-
-    .message-action-menu-item:hover {
-      background-color: var(--bs-tertiary-bg, #2b3035);
-    }
+    // Vertically center within the grid row
+    align-self: center;
   }
 }
 
 /* Align the user message to the right */
-shiny-user-message,
-shiny-chat-message[data-role="user"] {
+.shiny-chat-user-message {
   align-self: flex-end;
   padding: 0.75rem 1rem;
   border-radius: 10px;
   background-color: var(--shiny-chat-user-message-bg);
   max-width: 100%;
-}
-
-shiny-chat-message[data-role="user"]:not([icon]) {
-  // User messages don't have an icon (unless they're somehow added manually).
-  // In the future, we'll likely want to support user avatars
+  // User messages don't have an icon by default
   grid-template-columns: auto;
 }
 
-shiny-user-message,
-shiny-chat-message {
-  &[content_type="text"] {
+.shiny-chat-message,
+.shiny-chat-user-message {
+  &.content-type-text {
     white-space: pre;
     overflow-x: auto;
   }
 }
 
-shiny-chat-input {
+.shiny-chat-input {
   --_input-padding-top: 0;
   --_input-padding-bottom: var(--_chat-container-padding, 0.25rem);
 
@@ -283,119 +159,331 @@ shiny-chat-input {
   textarea {
     --bs-border-radius: 26px;
     resize: none;
-    padding-right: 72px !important; // More space for mic + send buttons
+    padding-right: 72px !important; // Space for mic + send buttons
     max-height: 175px;
     &::placeholder {
       color: var(--bs-gray-600, #707782) !important;
     }
   }
 
-  // Shared button styles
+  // Shared button styles for input area buttons
   .shiny-chat-btn-send,
-  .shiny-chat-btn-mic {
+  .shiny-chat-btn-mic,
+  .shiny-chat-btn-attach {
     position: absolute;
     bottom: calc(6px + var(--_input-padding-bottom));
     background-color: transparent;
+    color: var(--bs-primary, #007bc2);
     transition: color 0.25s ease-in-out;
     border: none;
     padding: 0;
     cursor: pointer;
     line-height: 16px;
     border-radius: 50%;
-
     &:disabled {
       cursor: not-allowed;
       color: var(--bs-gray-500, #8d959e);
     }
   }
-
   .shiny-chat-btn-send {
     right: 8px;
-    color: var(--bs-primary, #007bc2);
   }
-
-  .shiny-chat-btn-mic {
-    right: 40px;
-    color: var(--bs-gray-600, #707782);
-
+  .shiny-chat-btn-attach {
+    right: 36px;
+    color: var(--bs-secondary, #6c757d);
     &:hover:not(:disabled) {
       color: var(--bs-primary, #007bc2);
     }
-
+  }
+  .shiny-chat-btn-mic {
+    right: 36px;
+    width: 24px;
+    height: 24px;
+    color: var(--bs-secondary, #6c757d);
     &.recording {
       color: var(--bs-danger, #dc3545);
+      animation: pulse-recording 1.5s ease-in-out infinite;
+    }
+  }
+  // Shift mic right when attach button is present
+  &:has(.shiny-chat-btn-attach) .shiny-chat-btn-mic {
+    right: 64px;
+  }
 
-      .recording-indicator {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
+  .recording-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    color: var(--bs-danger, #dc3545);
 
-        svg {
-          animation: pulse-recording 1.5s ease-in-out infinite;
-          flex-shrink: 0;
-        }
+    svg {
+      width: 20px;
+      height: 20px;
+    }
 
-        &.transcribing {
-          max-width: 200px;
-        }
-      }
+    &.transcribing {
+      position: absolute;
+      bottom: calc(8px + var(--_input-padding-bottom));
+      left: 1rem;
+      max-width: calc(100% - 120px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-      .recording-time {
-        font-size: 0.75rem;
-        font-weight: 500;
-        font-variant-numeric: tabular-nums;
-        min-width: 2.5rem;
-      }
-
-      .transcribed-text {
-        font-size: 0.75rem;
-        font-weight: 400;
-        max-width: 150px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        color: var(--bs-body-color, #212529);
-      }
+    .recording-time {
+      font-variant-numeric: tabular-nums;
     }
   }
 }
 
+// Textarea padding adjusts for button count:
+// Default in .shiny-chat-input textarea: 72px (send + mic)
+// send only
+.shiny-chat-input:not(:has(.shiny-chat-btn-mic)):not(:has(.shiny-chat-btn-attach)) textarea {
+  padding-right: 36px !important;
+}
+// send + attach (no mic)
+.shiny-chat-input:has(.shiny-chat-btn-attach):not(:has(.shiny-chat-btn-mic)) textarea {
+  padding-right: 68px !important;
+}
+// send + mic + attach
+.shiny-chat-input:has(.shiny-chat-btn-mic):has(.shiny-chat-btn-attach) textarea {
+  padding-right: 96px !important;
+}
+
 @keyframes pulse-recording {
-  0%,
-  100% {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+// Message action buttons
+.message-actions {
+  display: flex;
+  gap: 0.125rem;
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+  padding-top: 0.125rem;
+
+  .shiny-chat-message:hover &,
+  &:focus-within {
     opacity: 1;
   }
-  50% {
-    opacity: 0.5;
+
+  .message-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 4px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--bs-secondary, #6c757d);
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+
+    &:hover {
+      background-color: var(--bs-gray-200, #e9ecef);
+      color: var(--bs-body-color, #212529);
+    }
+
+    &.active,
+    &.success {
+      color: var(--bs-primary, #007bc2);
+    }
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
   }
+
+  .message-action-more-wrapper {
+    position: relative;
+  }
+
+  .message-action-menu {
+    position: absolute;
+    z-index: 1000;
+    min-width: 160px;
+    padding: 0.25rem 0;
+    background: var(--bs-body-bg, #fff);
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    left: 0;
+
+    &--above {
+      bottom: 100%;
+      margin-bottom: 4px;
+    }
+
+    &--below {
+      top: 100%;
+      margin-top: 4px;
+    }
+  }
+
+  .message-action-menu-item {
+    display: block;
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    border: none;
+    background: transparent;
+    color: var(--bs-body-color, #212529);
+    font-size: 0.8125rem;
+    text-align: left;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+      background-color: var(--bs-gray-100, #f8f9fa);
+    }
+  }
+}
+
+// File attachment previews
+.shiny-chat-attachment-previews {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem 0;
+}
+
+.shiny-chat-attachment-preview {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: var(--shiny-chat-border);
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .shiny-chat-attachment-remove {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    opacity: 0;
+    transition: opacity 0.15s;
+
+    svg {
+      width: 10px;
+      height: 10px;
+    }
+  }
+
+  &:hover .shiny-chat-attachment-remove {
+    opacity: 1;
+  }
+}
+
+.shiny-chat-attachment-file {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  width: 100%;
+  height: 100%;
+  padding: 0.25rem;
+  background: var(--bs-gray-100, #f8f9fa);
+
+  .shiny-chat-attachment-file-icon {
+    color: var(--bs-secondary, #6c757d);
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .shiny-chat-attachment-file-name {
+    font-size: 0.5625rem;
+    line-height: 1.1;
+    text-align: center;
+    color: var(--bs-body-color, #212529);
+    word-break: break-all;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+}
+
+// Slash command menu
+.shiny-chat-slash-menu {
+  z-index: 1050;
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--bs-body-bg, #fff);
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  padding: 0.25rem 0;
+}
+
+.shiny-chat-slash-item {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0.875rem;
+  cursor: pointer;
+  gap: 0.125rem;
+
+  &[aria-selected="true"],
+  &:hover {
+    background: var(--bs-primary-bg-subtle, rgba(0, 123, 194, 0.08));
+  }
+
+  .slash-item-name {
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: var(--bs-body-color, #212529);
+    &::before {
+      content: "/";
+      color: var(--bs-primary, #007bc2);
+    }
+  }
+
+  .slash-item-desc {
+    font-size: 0.75rem;
+    color: var(--bs-secondary, #6c757d);
+  }
+}
+
+// Drop zone visual feedback
+.shiny-chat-input[data-drop-active] {
+  outline: 2px dashed var(--bs-primary, #007bc2);
+  outline-offset: -2px;
+  border-radius: 26px;
 }
 
 /*
   Disable the page-level pulse when the chat input is disabled
   (i.e., when a response is being generated and brought into the chat)
 */
-.shiny-busy:has(shiny-chat-input[disabled])::after {
+.shiny-busy:has(.shiny-chat-input.disabled)::after {
   display: none;
-}
-
-/* Embedded Shiny modules in chat messages */
-.chat-embedded-module {
-  width: 100%;
-
-  // Ensure Shiny outputs fill their container properly
-  .shiny-plot-output,
-  .shiny-html-output,
-  .html-widget-output {
-    width: 100%;
-  }
-
-  // Give embedded modules some breathing room from surrounding text
-  &:not(:first-child) {
-    margin-top: 0.5rem;
-  }
-  &:not(:last-child) {
-    margin-bottom: 0.5rem;
-  }
 }
 
 /* External link dialog styling */

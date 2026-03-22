@@ -41,7 +41,7 @@
     Condition
       Warning:
       Invalid `@extra$display` format for `ContentToolResult` from `test-tool()` (call id: test-id).
-      x Expected a list with fields `html`, `markdown`, `text`, `show_request`, `open`, `title`, or `icon`, not a string.
+      x Expected a list with fields `html`, `markdown`, `text`, `show_request`, `open`, `full_screen`, `title`, `icon`, or `footer`, not a string.
     Output
       list()
 
@@ -79,5 +79,5 @@
       i To display HTML content for tool results in shinychat, create a tool result with `extra = list(display = list(html = ...))`.
       i You can also use `markdown` or `text` items in `display` to show Markdown or plain text, respectively.
     Output
-      <shiny-tool-result request-id="test-id" tool-name="test-tool" request-call="`test-tool`()" status="success" show-request value="{}" value-type="code"></shiny-tool-result>
+      <shiny-tool-result request-id="test-id" tool-name="test-tool" request-call="`test-tool`()" status="success" show-request value="{}" value-type="code" data-shinychat-react></shiny-tool-result>
 

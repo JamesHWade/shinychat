@@ -4,23 +4,6 @@
 # trimming of the message history to fit within the context window; these
 # are left for the caller to handle in the R version.
 
-chat_deps <- function() {
-  htmltools::htmlDependency(
-    "dowshinychat",
-    utils::packageVersion("dowshinychat"),
-    package = "dowshinychat",
-    src = "lib/shiny",
-    script = list(
-      list(src = "chat/chat.js", type = "module"),
-      list(src = "markdown-stream/markdown-stream.js", type = "module")
-    ),
-    stylesheet = c(
-      "chat/chat.css",
-      "markdown-stream/markdown-stream.css"
-    )
-  )
-}
-
 #' Create a chat UI element
 #'
 #' @description
@@ -31,22 +14,6 @@ chat_deps <- function() {
 #' To respond to user input, listen for `input$ID_user_input` (for example, if
 #' `id="my_chat"`, user input will be at `input$my_chat_user_input`), and use
 #' [chat_append()] to append messages to the chat.
-#'
-#' # Message action events
-#'
-#' When `message_actions` is enabled, clicking action buttons on messages will
-#' trigger the following inputs (replace `ID` with your chat ID):
-#'
-#' * `input$ID_message_copy` - Triggered when copy button is clicked.
-#'   Contains `messageIndex` (int) and `content` (string).
-#' * `input$ID_message_feedback` - Triggered when thumbs up/down is clicked.
-#'   Contains `messageIndex`, `content`, and `feedback` ("positive" or "negative").
-#' * `input$ID_message_regenerate` - Triggered when regenerate button is clicked.
-#'   Contains `messageIndex` and `content`.
-#' * `input$ID_message_share` - Triggered when share button is clicked.
-#'   Contains `messageIndex` and `content`.
-#'
-#' Use `observeEvent(input$my_chat_message_feedback, ...)` to respond to these events.
 #'
 #' @param id The ID of the chat element
 #' @param ... Extra HTML attributes to include on the chat element
@@ -82,6 +49,21 @@ chat_deps <- function() {
 #'     (`input$ID_user_input_audio`) with `audio` (base64), `format`, `duration`,
 #'     and `size` fields. Use this with multimodal LLMs that accept native audio
 #'     (e.g., GPT-4o, Gemini).
+#' @param slash_commands A list of slash command definitions. Each command is a
+#'   named list with `name` (string), `description` (string), `type`
+#'   (`"client"` or `"server"`), and optionally `client_action` (string, for
+#'   client-side commands). When the user types `/` in the input, a dropdown
+#'   appears with matching commands. Client commands execute immediately in the
+#'   browser (e.g., `client_action = "clear_messages"`). Server commands send
+#'   `"/commandname"` as user input. Commands can also be updated dynamically
+#'   with [chat_update_slash_commands()].
+#' @param file_input Enable file attachments via paste, drag-and-drop, and a
+#'   file picker button. When `TRUE`, users can attach images, PDFs, and text
+#'   files to their messages. Attached files are available as a separate reactive
+#'   input at `input$ID_user_input_files`, which is a list of lists, each with
+#'   `name` (string), `type` (MIME type string), and `data` (base64-encoded
+#'   string) fields. This matches ellmer's `ContentImageInline` format.
+#'   Defaults to `FALSE`.
 #' @param message_actions Controls which action buttons appear on assistant
 #'   messages. Can be:
 #'
@@ -121,104 +103,123 @@ chat_deps <- function() {
 #'
 #' @export
 chat_ui <- function(
-  id,
-  ...,
-  messages = NULL,
-  placeholder = "Enter a message...",
-  width = "min(680px, 100%)",
-  height = "auto",
-  fill = TRUE,
-  icon_assistant = NULL,
-  audio_input = FALSE,
-  message_actions = NULL
+	id,
+	...,
+	messages = NULL,
+	placeholder = "Enter a message...",
+	width = "min(680px, 100%)",
+	height = "auto",
+	fill = TRUE,
+	icon_assistant = NULL,
+	audio_input = FALSE,
+	file_input = FALSE,
+	slash_commands = NULL,
+	message_actions = NULL
 ) {
-  attrs <- rlang::list2(...)
-  if (!all(nzchar(rlang::names2(attrs)))) {
-    rlang::abort("All arguments in ... must be named.")
-  }
+	attrs <- rlang::list2(...)
+	if (!all(nzchar(rlang::names2(attrs)))) {
+		rlang::abort("All arguments in ... must be named.")
+	}
 
-  # Process message_actions to a string attribute
-  message_actions_attr <- NULL
-  if (isTRUE(message_actions) || identical(message_actions, "all")) {
-    message_actions_attr <- "all"
-  } else if (isFALSE(message_actions) || identical(message_actions, "none")) {
-    message_actions_attr <- "none"
-  } else if (!is.null(message_actions)) {
-    # It's a character vector of action names
-    message_actions_attr <- paste(message_actions, collapse = ",")
-  }
+	# Process audio_input to an attribute value
+	audio_input_attr <- if (isTRUE(audio_input)) {
+		"transcribe"
+	} else if (
+		is.character(audio_input) && audio_input %in% c("transcribe", "raw")
+	) {
+		audio_input
+	} else {
+		NULL
+	}
 
-  message_tags <- lapply(messages, function(x) {
-    role <- "assistant"
-    content <- x
-    if (is.list(x) && ("content" %in% names(x))) {
-      content <- x[["content"]]
-      role <- x[["role"]] %||% role
-    }
+	# Process file_input to an attribute value
+	file_input_attr <- if (isTRUE(file_input)) "true" else NULL
 
-    # `content` is most likely a string, so avoid overhead in that case
-    # (it's also important that we *don't escape HTML* here).
-    if (is.character(content)) {
-      ui <- list(html = paste(content, collapse = "\n"))
-    } else {
-      ui <- with_current_theme(htmltools::renderTags(content))
-    }
+	# Process slash_commands to a JSON attribute
+	slash_commands_attr <- if (!is.null(slash_commands)) {
+		jsonlite::toJSON(slash_commands, auto_unbox = TRUE)
+	} else {
+		NULL
+	}
 
-    tag(
-      "shiny-chat-message",
-      rlang::list2(
-        `data-role` = role,
-        content = ui[["html"]],
-        icon = if (!is.null(icon_assistant)) as.character(icon_assistant),
-        `message-actions` = message_actions_attr,
-        ui[["dependencies"]],
-      )
-    )
-  })
+	# Process message_actions to a string attribute
+	message_actions_attr <- if (
+		isTRUE(message_actions) || identical(message_actions, "all")
+	) {
+		"all"
+	} else if (isFALSE(message_actions) || identical(message_actions, "none")) {
+		"none"
+	} else if (is.character(message_actions) && length(message_actions) > 0) {
+		paste(message_actions, collapse = ",")
+	} else {
+		NULL
+	}
 
-  res <- tag(
-    "shiny-chat-container",
-    rlang::list2(
-      id = id,
-      style = css(
-        width = width,
-        height = height
-      ),
-      placeholder = placeholder,
-      fill = if (isTRUE(fill)) NA else NULL,
-      # Also include icon on the parent so that when messages are dynamically added,
-      # we know the default icon has changed
-      `icon-assistant` = if (!is.null(icon_assistant)) {
-        as.character(icon_assistant)
-      },
-      # Include message-actions on container so dynamically added messages inherit it
-      `message-actions` = message_actions_attr,
-      ...,
-      tag("shiny-chat-messages", message_tags),
-      tag(
-        "shiny-chat-input",
-        list(
-          id = paste0(id, "_user_input"),
-          placeholder = placeholder,
-          `audio-input` = if (isTRUE(audio_input)) {
-            "transcribe"
-          } else if (is.character(audio_input) && audio_input %in% c("transcribe", "raw")) {
-            audio_input
-          } else {
-            NULL
-          }
-        )
-      ),
-      chat_deps(),
-      htmltools::findDependencies(icon_assistant)
-    )
-  )
+	message_tags <- lapply(messages, function(x) {
+		role <- "assistant"
+		content <- x
+		if (is.list(x) && ("content" %in% names(x))) {
+			content <- x[["content"]]
+			role <- x[["role"]] %||% role
+		}
 
-  if (isTRUE(fill)) {
-    res <- bslib::as_fill_carrier(res)
-  }
+		# `content` is most likely a string, so avoid overhead in that case
+		# (it's also important that we *don't escape HTML* here).
+		if (is.character(content)) {
+			ui <- list(html = paste(content, collapse = "\n"))
+		} else {
+			ui <- with_current_theme(htmltools::renderTags(pre_process_ui(content)))
+		}
 
-  tag_require(res, version = 5, caller = "chat_ui")
+		tag(
+			"shiny-chat-message",
+			rlang::list2(
+				`data-role` = role,
+				content = ui[["html"]],
+				icon = if (!is.null(icon_assistant)) as.character(icon_assistant),
+				ui[["dependencies"]],
+			)
+		)
+	})
+
+	res <- tag(
+		"shiny-chat-container",
+		rlang::list2(
+			id = id,
+			style = css(
+				width = width,
+				height = height
+			),
+			placeholder = placeholder,
+			fill = if (isTRUE(fill)) NA else NULL,
+			# Also include icon on the parent so that when messages are dynamically added,
+			# we know the default icon has changed
+			`icon-assistant` = if (!is.null(icon_assistant)) {
+				as.character(icon_assistant)
+			},
+			`message-actions` = message_actions_attr,
+			`slash-commands` = slash_commands_attr,
+			...,
+			tag("shiny-chat-messages", message_tags),
+			tag(
+				"shiny-chat-input",
+				list(
+					id = paste0(id, "_user_input"),
+					placeholder = placeholder,
+					`audio-input` = audio_input_attr,
+					`file-input` = file_input_attr
+				)
+			),
+			dowshinychat_deps(),
+			htmltools::findDependencies(icon_assistant)
+		)
+	)
+
+	if (isTRUE(fill)) {
+		res <- bslib::as_fill_carrier(res)
+	}
+
+	tag_require(res, version = 5, caller = "chat_ui")
 }
 
 #' Append an assistant response (or user message) to a chat control
@@ -242,7 +243,7 @@ chat_ui <- function(
 #' an error occurs while producing the message (e.g., an iteration in
 #' `stream_async` fails), the promise returned by `chat_append` will reject with
 #' the error. If the `chat_append` call is the last expression in a Shiny
-#' observer, dowshinychat will log the error message and show a message that the
+#' observer, shinychat will log the error message and show a message that the
 #' error occurred in the chat UI.
 #'
 #' @param id The ID of the chat element
@@ -311,17 +312,17 @@ chat_ui <- function(
 #'
 #' @export
 chat_append <- function(
-  id,
-  response,
-  role = c("assistant", "user"),
-  icon = NULL,
-  session = getDefaultReactiveDomain()
+	id,
+	response,
+	role = c("assistant", "user"),
+	icon = NULL,
+	session = getDefaultReactiveDomain()
 ) {
-  check_active_session(session)
-  role <- match.arg(role)
+	check_active_session(session)
+	role <- match.arg(role)
 
-  stream <- as_generator(response)
-  chat_append_stream(id, stream, role = role, icon = icon, session = session)
+	stream <- as_generator(response)
+	chat_append_stream(id, stream, role = role, icon = icon, session = session)
 }
 
 #' Low-level function to append a message to a chat control
@@ -397,208 +398,252 @@ chat_append <- function(
 #'
 #' @export
 chat_append_message <- function(
-  id,
-  msg,
-  chunk = TRUE,
-  operation = c("append", "replace"),
-  icon = NULL,
-  session = getDefaultReactiveDomain()
+	id,
+	msg,
+	chunk = TRUE,
+	operation = c("append", "replace"),
+	icon = NULL,
+	session = getDefaultReactiveDomain()
 ) {
-  check_active_session(session)
+	check_active_session(session)
 
-  if (!is.list(msg)) {
-    rlang::abort("`msg` must be a named list with 'role' and 'content' fields")
-  }
-  if (!isTRUE(msg[["role"]] %in% c("user", "assistant"))) {
-    warning("Invalid role argument; must be 'user' or 'assistant'")
-    return(invisible(NULL))
-  }
+	if (!is.list(msg)) {
+		rlang::abort("`msg` must be a named list with 'role' and 'content' fields")
+	}
+	if (!isTRUE(msg[["role"]] %in% c("user", "assistant"))) {
+		warning("Invalid role argument; must be 'user' or 'assistant'")
+		return(invisible(NULL))
+	}
 
-  if (!isFALSE(chunk)) {
-    msg_type <- "shiny-chat-append-message-chunk"
-    if (chunk == "start") {
-      chunk_type <- "message_start"
-    } else if (chunk == "end") {
-      chunk_type <- "message_end"
-    } else if (isTRUE(chunk)) {
-      chunk_type <- NULL
-    } else {
-      rlang::abort("Invalid chunk argument")
-    }
-  } else {
-    msg_type <- "shiny-chat-append-message"
-    chunk_type <- NULL
-  }
+	if (!isFALSE(chunk)) {
+		if (chunk == "start") {
+			chunk_type <- "start"
+		} else if (chunk == "end") {
+			chunk_type <- "end"
+		} else if (isTRUE(chunk)) {
+			chunk_type <- "intermediate"
+		} else {
+			rlang::abort("Invalid chunk argument")
+		}
+	} else {
+		chunk_type <- "complete"
+	}
 
-  content <- msg[["content"]]
-  is_html <- inherits(
-    content,
-    c(
-      "shiny.tag",
-      "shiny.tag.list",
-      "html",
-      "htmlwidget",
-      "dowshinychat_tool_card"
-    )
-  )
-  content_type <- if (is_html) "html" else "markdown"
+	content <- msg[["content"]]
+	is_html <- inherits(
+		content,
+		c(
+			"shiny.tag",
+			"shiny.tag.list",
+			"html",
+			"htmlwidget",
+			"dowshinychat_tool_card"
+		)
+	)
+	content_type <- if (is_html) "html" else "markdown"
 
-  operation <- match.arg(operation)
-  if (identical(operation, "replace")) {
-    operation <- NULL
-  }
+	operation <- match.arg(operation)
 
-  if (is.character(content)) {
-    # content is most likely a string, so avoid overhead in that case
-    ui <- list(html = content, deps = "[]")
-  } else {
-    # process_ui() does *not* render markdown->HTML, but it does:
-    # 1. Extract and register HTMLdependency()s with the session.
-    # 2. Returns a HTML string representation of the TagChild
-    #    (i.e., `div()` -> `"<div>"`).
-    ui <- process_ui(content, session)
-  }
+	if (is.character(content) && !is_html) {
+		# content is most likely a string, so avoid overhead in that case
+		ui <- list(html = content, deps = NULL)
+	} else {
+		# process_ui() does *not* render markdown->HTML, but it does:
+		# 1. Extract and register HTMLdependency()s with the session.
+		# 2. Returns a HTML string representation of the TagChild
+		#    (i.e., `div()` -> `"<div>"`).
+		ui <- process_ui(pre_process_ui(content), session)
+	}
 
-  msg_content <- ui[["html"]]
-  if (is_html) {
-    # Code blocks with `{=html}` infostrings are rendered as-is by a custom
-    # rendering method in markdown-stream.ts
-    msg_content <- sprintf(
-      "\n\n````````{=html}\n%s\n````````\n\n",
-      msg_content
-    )
-  }
+	msg_content <- ui[["html"]]
+	if (is_html) {
+		# Surround with blank lines so the markdown parser treats
+		# block-level custom elements correctly.
+		msg_content <- paste0("\n\n", msg_content, "\n\n")
+	}
 
-  msg <- list(
-    content = msg_content,
-    role = msg[["role"]],
-    content_type = content_type,
-    html_deps = ui[["deps"]],
-    chunk_type = chunk_type,
-    operation = operation
-  )
+	html_deps <- ui[["deps"]]
 
-  if (!is.null(icon)) {
-    msg$icon <- as.character(icon)
-  }
+	icon_str <- if (!is.null(icon)) as.character(icon) else NULL
 
-  session$sendCustomMessage(
-    "shinyChatMessage",
-    list(
-      id = resolve_id(id, session),
-      handler = msg_type,
-      obj = msg
-    )
-  )
+	if (chunk_type == "start") {
+		message_payload <- list(
+			role = msg[["role"]],
+			content = msg_content,
+			content_type = content_type
+		)
+		if (!is.null(icon_str)) {
+			message_payload$icon <- icon_str
+		}
+		action <- list(type = "chunk_start", message = message_payload)
+		send_chat_action(
+			id,
+			action = action,
+			html_deps = html_deps,
+			session = session
+		)
+	} else if (chunk_type == "end") {
+		if (nzchar(msg_content)) {
+			chunk_action <- list(
+				type = "chunk",
+				content = msg_content,
+				operation = operation,
+				content_type = content_type
+			)
+			send_chat_action(
+				id,
+				action = chunk_action,
+				html_deps = html_deps,
+				session = session
+			)
+		}
+		send_chat_action(id, action = list(type = "chunk_end"), session = session)
+	} else if (chunk_type == "intermediate") {
+		action <- list(
+			type = "chunk",
+			content = msg_content,
+			operation = operation,
+			content_type = content_type
+		)
+		send_chat_action(
+			id,
+			action = action,
+			html_deps = html_deps,
+			session = session
+		)
+	} else {
+		# chunk_type == "complete"
+		message_payload <- list(
+			role = msg[["role"]],
+			content = msg_content,
+			content_type = content_type
+		)
+		if (!is.null(icon_str)) {
+			message_payload$icon <- icon_str
+		}
+		action <- list(type = "message", message = message_payload)
+		send_chat_action(
+			id,
+			action = action,
+			html_deps = html_deps,
+			session = session
+		)
+	}
 
-  invisible(NULL)
+	invisible(NULL)
 }
 
 chat_append_stream <- function(
-  id,
-  stream,
-  role = "assistant",
-  icon = NULL,
-  session = getDefaultReactiveDomain()
+	id,
+	stream,
+	role = "assistant",
+	icon = NULL,
+	session = getDefaultReactiveDomain()
 ) {
-  result <- chat_append_stream_impl(id, stream, role, icon, session)
-  result <- chat_update_bookmark(id, result, session = session)
-  # Handle erroneous result...
-  result <- promises::catch(result, function(reason) {
-    # ...but rethrow the error as a silent error, so the caller can also handle
-    # it if they want, but it won't bring down the app.
-    class(reason) <- c("shiny.silent.error", class(reason))
-    cnd_signal(reason)
-  })
+	result <- chat_append_stream_impl(id, stream, role, icon, session)
+	result <- chat_update_bookmark(id, result, session = session)
+	# Handle erroneous result...
+	result <- promises::catch(result, function(reason) {
+		# ...but rethrow the error as a silent error, so the caller can also handle
+		# it if they want, but it won't bring down the app.
+		class(reason) <- c("shiny.silent.error", class(reason))
+		cnd_signal(reason)
+	})
 
-  promises::catch(result, function(reason) {
-    chat_append_message(
-      id,
-      list(
-        role = role,
-        content = sanitized_chat_error(reason)
-      ),
-      chunk = "end",
-      operation = "append",
-      session = session
-    )
-    rlang::warn(
-      sprintf(
-        "ERROR: An error occurred in `chat_append_stream(id=\"%s\")`",
-        session$ns(id)
-      ),
-      parent = reason
-    )
-  })
+	promises::catch(result, function(reason) {
+		chat_append_message(
+			id,
+			list(
+				role = role,
+				content = sanitized_chat_error(reason)
+			),
+			chunk = "end",
+			operation = "append",
+			session = session
+		)
+		rlang::warn(
+			sprintf(
+				"ERROR: An error occurred in `chat_append_stream(id=\"%s\")`",
+				session$ns(id)
+			),
+			parent = reason
+		)
+	})
 
-  # Note that we're not returning the result of `promises::catch()`, because we
-  # want to return a rejected promise so the caller can see the error. But we
-  # use the `catch()` both to make the error visible to the user *and* to ensure
-  # there's no "unhandled promise error" warning if the caller chooses not to do
-  # anything with it.
-  result
+	# Note that we're not returning the result of `promises::catch()`, because we
+	# want to return a rejected promise so the caller can see the error. But we
+	# use the `catch()` both to make the error visible to the user *and* to ensure
+	# there's no "unhandled promise error" warning if the caller chooses not to do
+	# anything with it.
+	result
 }
 
 utils:::globalVariables(c("generator_env", "exits", "yield"))
 
 chat_append_stream_impl <- NULL
 rlang::on_load(
-  chat_append_stream_impl <- coro::async(function(
-    id,
-    stream,
-    role = "assistant",
-    icon = NULL,
-    session = shiny::getDefaultReactiveDomain()
-  ) {
-    chat_append_ <- function(content, chunk = TRUE, ...) {
-      chat_append_message(
-        id,
-        msg = list(role = role, content = content),
-        operation = "append",
-        chunk = chunk,
-        session = session,
-        ...
-      )
-    }
+	chat_append_stream_impl <- coro::async(function(
+		id,
+		stream,
+		role = "assistant",
+		icon = NULL,
+		session = shiny::getDefaultReactiveDomain()
+	) {
+		chat_append_ <- function(content, chunk = TRUE, ...) {
+			chat_append_message(
+				id,
+				msg = list(role = role, content = content),
+				operation = "append",
+				chunk = chunk,
+				session = session,
+				...
+			)
+		}
 
-    chat_append_("", chunk = "start", icon = icon)
+		chat_append_("", chunk = "start", icon = icon)
 
-    res <- fastmap::fastqueue(200)
+		res <- fastmap::fastqueue(200)
 
-    for (msg in stream) {
-      if (promises::is.promising(msg)) {
-        msg <- await(msg)
-      }
-      if (coro::is_exhausted(msg)) {
-        break
-      }
+		for (msg in stream) {
+			if (promises::is.promising(msg)) {
+				msg <- await(msg)
+			}
+			if (coro::is_exhausted(msg)) {
+				break
+			}
 
-      res$add(msg)
+			res$add(msg)
 
-      if (S7::S7_inherits(msg, ellmer::ContentToolResult)) {
-        if (!is.null(msg@request)) {
-          session$sendCustomMessage("shiny-tool-request-hide", msg@request@id)
-        }
-      }
+			if (S7::S7_inherits(msg, ellmer::ContentToolResult)) {
+				if (!is.null(msg@request)) {
+					send_chat_action(
+						id,
+						action = list(
+							type = "hide_tool_request",
+							requestId = msg@request@id
+						),
+						session = session
+					)
+				}
+			}
 
-      if (S7::S7_inherits(msg, ellmer::Content)) {
-        msg <- contents_shinychat(msg)
-      }
+			if (S7::S7_inherits(msg, ellmer::Content)) {
+				msg <- contents_shinychat(msg)
+			}
 
-      chat_append_(msg)
-    }
+			chat_append_(msg)
+		}
 
-    chat_append_("", chunk = "end")
+		chat_append_("", chunk = "end")
 
-    res <- res$as_list()
-    if (every(res, is.character)) {
-      paste(unlist(res), collapse = "")
-    } else {
-      res
-    }
-  })
+		res <- res$as_list()
+		if (every(res, is.character)) {
+			paste(unlist(res), collapse = "")
+		} else {
+			res
+		}
+	})
 )
-
 
 #' Clear all messages from a chat control
 #'
@@ -629,18 +674,37 @@ rlang::on_load(
 #'
 #' shinyApp(ui, server)
 chat_clear <- function(id, session = getDefaultReactiveDomain()) {
-  check_active_session(session)
-
-  session$sendCustomMessage(
-    "shinyChatMessage",
-    list(
-      id = resolve_id(id, session),
-      handler = "shiny-chat-clear-messages",
-      obj = NULL
-    )
-  )
+	check_active_session(session)
+	send_chat_action(id, action = list(type = "clear"), session = session)
 }
 
+#' Update the slash commands of a chat control
+#'
+#' Dynamically update the available slash commands for a [chat_ui()]. This
+#' allows you to add, remove, or replace commands at runtime.
+#'
+#' @param id The ID of the chat element
+#' @param commands A list of slash command definitions. Each command is a named
+#'   list with `name`, `description`, `type` (`"client"` or `"server"`), and
+#'   optionally `client_action`.
+#' @param session The Shiny session object
+#'
+#' @export
+chat_update_slash_commands <- function(
+	id,
+	commands,
+	session = getDefaultReactiveDomain()
+) {
+	check_active_session(session)
+	send_chat_action(
+		id,
+		action = list(
+			type = "update_commands",
+			commands = commands
+		),
+		session = session
+	)
+}
 
 #' Update the user input of a chat control
 #'
@@ -685,38 +749,33 @@ chat_clear <- function(id, session = getDefaultReactiveDomain()) {
 #' shinyApp(ui, server)
 
 update_chat_user_input <- function(
-  id,
-  ...,
-  value = NULL,
-  placeholder = NULL,
-  submit = FALSE,
-  focus = FALSE,
-  session = getDefaultReactiveDomain()
+	id,
+	...,
+	value = NULL,
+	placeholder = NULL,
+	submit = FALSE,
+	focus = FALSE,
+	session = getDefaultReactiveDomain()
 ) {
-  rlang::check_dots_empty()
-  check_active_session(session)
+	rlang::check_dots_empty()
+	check_active_session(session)
 
-  if (is.null(value) && (submit || focus)) {
-    rlang::abort(
-      "An input `value` must be provided when `submit` or `focus` are `TRUE`."
-    )
-  }
+	if (is.null(value) && (submit || focus)) {
+		rlang::abort(
+			"An input `value` must be provided when `submit` or `focus` are `TRUE`."
+		)
+	}
 
-  vals <- drop_nulls(
-    list(
-      value = value,
-      placeholder = placeholder,
-      submit = submit,
-      focus = focus
-    )
-  )
+	vals <- drop_nulls(
+		list(
+			value = value,
+			placeholder = placeholder,
+			submit = submit,
+			focus = focus
+		)
+	)
 
-  session$sendCustomMessage(
-    "shinyChatMessage",
-    list(
-      id = resolve_id(id, session),
-      handler = "shiny-chat-update-user-input",
-      obj = vals
-    )
-  )
+	action <- c(list(type = "update_input"), vals)
+
+	send_chat_action(id, action = action, session = session)
 }

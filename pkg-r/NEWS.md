@@ -4,6 +4,10 @@
 
 * Added `message_actions` parameter to `chat_ui()` for displaying action buttons (copy, thumbs up/down, regenerate, share) on assistant messages. Use `message_actions = TRUE` to enable all actions, or pass a character vector like `c("copy", "feedback")` to enable specific actions. Message action events are available as Shiny inputs (e.g., `input$ID_message_feedback`).
 
+* Added `footer` field to `ToolResultDisplay` for displaying custom HTML content below the tool result card body. (#178)
+
+* Tool result cards now support a fullscreen toggle. Set `full_screen = TRUE` in the `display` list (or set `res$full_screen <- NA` in a custom `contents_shinychat()` method) to add a button that expands the card to fill the viewport. Press `Escape`, click the backdrop, or use the close button to exit fullscreen.
+
 * Fixed an issue where user chat messages would display the default assistant icon. (#162)
 
 # dowshinychat 0.3.0

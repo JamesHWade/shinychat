@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import sys
 import types
 from datetime import datetime
@@ -222,7 +223,7 @@ def test_tagifiable_normalization():
     m = message_content(HTML("Hello <span>world</span>!"))
     assert (
         m.content
-        == "\n\n````````{=html}\nHello <span>world</span>!\n````````\n\n"
+        == "\n\n<shinychat-raw-html>Hello <span>world</span>!</shinychat-raw-html>\n\n"
     )
     assert m.role == "assistant"
 
@@ -230,7 +231,7 @@ def test_tagifiable_normalization():
     m = message_content(div("Hello <span>world</span>!"))
     assert (
         m.content
-        == "\n\n````````{=html}\n<div>Hello &lt;span&gt;world&lt;/span&gt;!</div>\n````````\n\n"
+        == "\n\n<shinychat-raw-html>\n  <div>Hello &lt;span&gt;world&lt;/span&gt;!</div>\n</shinychat-raw-html>\n\n"
     )
     assert m.role == "assistant"
 
@@ -260,24 +261,54 @@ def test_langchain_normalization():
     assert m.role == "assistant"
 
 
-def test_google_normalization():
-    # Not available for Python 3.8
-    if sys.version_info < (3, 9):
+def test_google_content_object_normalization():
+    # Not available for Python 3.9
+    if sys.version_info < (3, 10):
         return
 
-    from google.generativeai.generative_models import (
-        GenerativeModel,  # pyright: ignore[reportMissingTypeStubs]
+    from google.genai import types
+
+    # Test Content object normalization
+    c = types.Content(parts=[types.Part(text="Hello world!")], role="model")
+    m = message_content(c)
+    assert m.content == "Hello world!"
+    assert m.role == "assistant"
+
+
+def test_google_multimodal_normalization():
+    # Not available for Python 3.9
+    if sys.version_info < (3, 10):
+        return
+
+    from google.genai import types
+
+    # Text part, image part, text part.
+    c = types.Content(
+        parts=[
+            types.Part(text="Here is an image:"),
+            types.Part(inline_data=types.Blob(mime_type="image/png", data=b"AAAA")),
+            types.Part(text=" described above."),
+        ],
+        role="model",
     )
 
-    generate_content = GenerativeModel.generate_content  # type: ignore
+    m = message_content(c)
+    assert m.content == "Here is an image: described above."
+    assert m.role == "assistant"
+
+
+def test_google_normalization():
+    # Not available for Python 3.9
+    if sys.version_info < (3, 10):
+        return
+
+    from google.genai.models import Models
+    from google.genai.types import GenerateContentResponse
 
     assert (
-        generate_content.__annotations__["return"]
-        == "generation_types.GenerateContentResponse"
+        inspect.signature(Models.generate_content).return_annotation
+        == GenerateContentResponse
     )
-
-    # Not worth mocking the return value of generate_content() since it's a complex object
-    # and fairly simple to normalize....
 
 
 def test_anthropic_normalization():
@@ -480,32 +511,21 @@ def test_as_anthropic_message():
 def test_as_google_message():
     from dowshinychat._chat_provider_types import as_google_message
 
-    # Not available for Python 3.8
-    if sys.version_info < (3, 9):
+    # Not available for Python 3.9
+    if sys.version_info < (3, 10):
         return
 
-    from google.generativeai.generative_models import (
-        GenerativeModel,  # pyright: ignore[reportMissingTypeStubs]
-    )
+    from google.genai import types
+    from google.genai.models import Models
 
-    generate_content = GenerativeModel.generate_content  # type: ignore
-
-    assert (
-        generate_content.__annotations__["contents"]
-        == "content_types.ContentsType"
+    contents_annotation = (
+        inspect.signature(Models.generate_content).parameters["contents"].annotation
     )
-
-    from google.generativeai.types import (
-        content_types,  # pyright: ignore[reportMissingTypeStubs]
-    )
-
-    assert is_type_in_union(
-        content_types.ContentDict, content_types.ContentsType
-    )
+    assert is_type_in_union(types.Content, contents_annotation)
 
     msg = ChatMessageDict(content="I have a question", role="user")
-    assert as_google_message(msg) == content_types.ContentDict(
-        parts=["I have a question"], role="user"
+    assert as_google_message(msg) == types.Content(
+        parts=[types.Part(text="I have a question")], role="user"
     )
 
 
@@ -625,3 +645,64 @@ def test_custom_objects():
     m = message_content_chunk(chunk)
     assert m.content == "Hello world!"
     assert m.role == "assistant"
+
+
+# ------------------------------------------------------------------------------------
+# Unit tests for chat_ui() parameter output
+# ------------------------------------------------------------------------------------
+
+
+def test_chat_ui_file_input():
+    from shinychat import chat_ui
+
+    tag = chat_ui("test_chat", file_input=True)
+    html = str(tag)
+    assert 'file-input="true"' in html
+
+
+def test_chat_ui_slash_commands():
+    from shinychat import chat_ui
+
+    commands = [
+        {"name": "clear", "description": "Clear chat", "type": "client"},
+        {"name": "help", "description": "Show help", "type": "server"},
+    ]
+    tag = chat_ui("test_chat", slash_commands=commands)
+    html = str(tag)
+    assert "slash-commands=" in html
+    assert "&quot;clear&quot;" in html or '"clear"' in html
+
+
+def test_chat_ui_audio_input():
+    from shinychat import chat_ui
+
+    tag = chat_ui("test_chat", audio_input=True)
+    html = str(tag)
+    assert 'audio-input="transcribe"' in html
+
+    tag = chat_ui("test_chat", audio_input="raw")
+    html = str(tag)
+    assert 'audio-input="raw"' in html
+
+
+def test_chat_ui_message_actions():
+    from shinychat import chat_ui
+
+    tag = chat_ui("test_chat", message_actions=True)
+    html = str(tag)
+    assert 'message-actions="all"' in html
+
+    tag = chat_ui("test_chat", message_actions=["copy", "feedback"])
+    html = str(tag)
+    assert 'message-actions="copy,feedback"' in html
+
+
+def test_chat_ui_defaults_no_extra_attrs():
+    from shinychat import chat_ui
+
+    tag = chat_ui("test_chat")
+    html = str(tag)
+    assert "file-input" not in html
+    assert "slash-commands" not in html
+    assert "audio-input" not in html
+    assert "message-actions" not in html
