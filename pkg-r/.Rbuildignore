@@ -15,3 +15,4 @@
 ^revdep$
 ^shiny_bookmarks$
 ^vignettes/articles$
+^\.ruff_cache$

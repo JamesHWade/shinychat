@@ -89,7 +89,7 @@ output_markdown_stream <- function(
 #' library(shiny)
 #' library(coro)
 #' library(bslib)
-#' library(shinychat)
+#' library(dowshinychat)
 #'
 #' # Define a generator that yields a random response
 #' # (imagine this is a more sophisticated AI generator)

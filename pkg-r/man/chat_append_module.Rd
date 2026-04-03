@@ -51,7 +51,7 @@ session, and its UI is rendered with Shiny input/output bindings active.
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 library(shiny)
 library(bslib)
-library(shinychat)
+library(dowshinychat)
 
 counter_ui <- function(id) {
   ns <- NS(id)

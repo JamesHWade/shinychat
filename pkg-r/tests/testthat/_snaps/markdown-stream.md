@@ -19,7 +19,7 @@
         htmlDependency("foo", "1.0.0", ""))))
     Output
       $deps
-      [{"name":"foo","all_files":true},{"name":"shinychat","script":{"src":"shinychat.js","type":"module"},"stylesheet":"shinychat.css","all_files":true}] 
+      [{"name":"foo","all_files":true},{"name":"dowshinychat","script":{"src":"shinychat.js","type":"module"},"stylesheet":"shinychat.css","all_files":true}] 
       
       $html
       <shiny-markdown-stream id="stream" style="width:min(680px, 100%);height:auto;margin:0 auto;" content="&lt;div&gt;Hello&lt;/div&gt;" content-type="markdown" auto-scroll=""></shiny-markdown-stream>

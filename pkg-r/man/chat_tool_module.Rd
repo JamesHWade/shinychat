@@ -81,7 +81,7 @@ modules.
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 library(shiny)
 library(bslib)
-library(shinychat)
+library(dowshinychat)
 library(ellmer)
 
 # Define a simple module
