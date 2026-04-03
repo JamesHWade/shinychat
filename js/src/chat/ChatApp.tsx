@@ -12,8 +12,6 @@ import {
 } from "./state"
 import { ChatContainer, type ChatContainerHandle } from "./ChatContainer"
 import type { ChatTransport, ShinyLifecycle } from "../transport/types"
-import type { AudioInputMode } from "./ChatInput"
-import type { SlashCommandDef } from "./slash-commands"
 
 interface ChatAppProps {
   transport: ChatTransport
@@ -22,10 +20,6 @@ interface ChatAppProps {
   iconAssistant?: string
   inputId: string
   placeholder?: string
-  audioInputMode?: AudioInputMode | null
-  fileInputEnabled?: boolean
-  commands?: SlashCommandDef[]
-  messageActions?: string
   initialMessages?: ChatMessageData[]
 }
 
@@ -36,17 +30,12 @@ export function ChatApp({
   iconAssistant,
   inputId,
   placeholder,
-  audioInputMode,
-  fileInputEnabled,
-  commands: initialCommands,
-  messageActions,
   initialMessages,
 }: ChatAppProps) {
   const [state, dispatch] = useReducer(chatReducer, {
     ...initialState,
     inputPlaceholder: placeholder ?? initialState.inputPlaceholder,
     messages: initialMessages ?? [],
-    commands: initialCommands ?? [],
   })
 
   const containerRef = useRef<ChatContainerHandle>(null)
@@ -99,11 +88,6 @@ export function ChatApp({
             inputPlaceholder={state.inputPlaceholder}
             iconAssistant={iconAssistant}
             inputId={inputId}
-            elementId={elementId}
-            audioInputMode={audioInputMode}
-            fileInputEnabled={fileInputEnabled}
-            commands={state.commands}
-            messageActions={messageActions}
           />
         </ChatDispatchContext.Provider>
       </ChatToolContext.Provider>

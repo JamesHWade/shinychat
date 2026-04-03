@@ -3,7 +3,6 @@ import type {
   ChatAction,
   MessagePayload,
 } from "../transport/types"
-import type { SlashCommandDef } from "./slash-commands"
 
 export interface ChatMessageData {
   id: string
@@ -28,7 +27,6 @@ export interface ChatToolState {
 export interface ChatState extends ChatInputState, ChatToolState {
   messages: ChatMessageData[]
   streamingMessage: ChatMessageData | null
-  commands: SlashCommandDef[]
 }
 
 // Actions that originate from the UI (not from the server)
@@ -46,7 +44,6 @@ export const initialState: ChatState = {
   inputDisabled: false,
   inputPlaceholder: "Enter a message...",
   hiddenToolRequests: new Set(),
-  commands: [],
 }
 
 function messagePayloadToData(msg: MessagePayload): ChatMessageData {
@@ -143,7 +140,6 @@ export function chatReducer(state: ChatState, action: AnyAction): ChatState {
       return {
         ...initialState,
         inputPlaceholder: state.inputPlaceholder,
-        commands: state.commands,
       }
 
     case "update_input":
@@ -167,9 +163,6 @@ export function chatReducer(state: ChatState, action: AnyAction): ChatState {
       newSet.add(action.requestId)
       return { ...state, hiddenToolRequests: newSet }
     }
-
-    case "update_commands":
-      return { ...state, commands: action.commands }
 
     default: {
       const _exhaustive: never = action
