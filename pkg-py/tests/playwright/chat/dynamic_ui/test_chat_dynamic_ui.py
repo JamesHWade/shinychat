@@ -1,6 +1,6 @@
+from dowshinychat.playwright import ChatController
 from playwright.sync_api import Page, expect
 from shiny.run import ShinyAppProc
-from dowshinychat.playwright import ChatController
 
 
 def test_validate_chat_basic(page: Page, local_app: ShinyAppProc) -> None:

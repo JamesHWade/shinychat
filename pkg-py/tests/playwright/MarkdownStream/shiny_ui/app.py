@@ -1,6 +1,6 @@
+from dowshinychat.express import MarkdownStream
 from shiny import reactive
 from shiny.express import input, render, ui
-from dowshinychat.express import MarkdownStream
 
 md_stream = MarkdownStream("stream")
 md_stream.ui(

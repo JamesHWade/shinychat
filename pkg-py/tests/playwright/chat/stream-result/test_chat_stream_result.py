@@ -1,9 +1,9 @@
 import re
 
+from dowshinychat.playwright import ChatController
 from playwright.sync_api import Page, expect
 from shiny.playwright import controller
 from shiny.run import ShinyAppProc
-from dowshinychat.playwright import ChatController
 
 
 def test_validate_chat_stream_result(

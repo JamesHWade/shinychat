@@ -1,8 +1,8 @@
 import asyncio
 
+from dowshinychat.express import Chat
 from shiny import reactive
 from shiny.express import input, render, ui
-from dowshinychat.express import Chat
 
 SLEEP_TIME = 0.25
 

@@ -1,6 +1,6 @@
+from dowshinychat.express import Chat
 from shiny import reactive
 from shiny.express import render
-from dowshinychat.express import Chat
 
 chat = Chat(id="chat")
 chat.ui()

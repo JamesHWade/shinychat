@@ -1,8 +1,8 @@
 import asyncio
 
+from dowshinychat.express import MarkdownStream
 from shiny import reactive
 from shiny.express import input, render, ui
-from dowshinychat.express import MarkdownStream
 
 stream = MarkdownStream("stream_id")
 stream.ui()

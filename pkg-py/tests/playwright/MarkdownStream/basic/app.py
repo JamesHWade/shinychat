@@ -1,9 +1,9 @@
 import asyncio
 from pathlib import Path
 
+from dowshinychat.express import MarkdownStream
 from shiny import reactive
 from shiny.express import render, ui
-from dowshinychat.express import MarkdownStream
 
 # Read in the py-shiny README.md file
 readme = Path(__file__).parent / "README.md"

@@ -2,8 +2,8 @@ import asyncio
 from pathlib import Path
 
 import faicons
-from shiny.express import app_opts, input, ui
 from dowshinychat.express import Chat
+from shiny.express import app_opts, input, ui
 
 ui.page_opts(title="Chat Icons")
 

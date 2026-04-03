@@ -1,11 +1,11 @@
 import faicons
 import pandas as pd
 from chatlas import ChatOpenAI, ContentToolResult
-from shiny.express import ui
-from shiny.ui import value_box
 from dowshinychat import message_content_chunk
 from dowshinychat.express import Chat
 from dowshinychat.types import ChatMessage
+from shiny.express import ui
+from shiny.ui import value_box
 
 
 class WeatherToolResult(ContentToolResult):
