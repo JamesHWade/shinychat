@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from dowshinychat._html_islands import split_html_islands
 from htmltools import Tag, TagList, div, span
-from shinychat._html_islands import split_html_islands
 
 
 def test_plain_html_wrapped_in_single_island():

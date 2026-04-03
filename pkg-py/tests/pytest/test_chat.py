@@ -7,9 +7,6 @@ from datetime import datetime
 from typing import Union, cast, get_args, get_origin
 
 import pytest
-from shiny import Session
-from shiny.module import ResolvedId
-from shiny.session import session_context
 from dowshinychat import Chat
 from dowshinychat._chat_normalize import message_content, message_content_chunk
 from dowshinychat._chat_types import (
@@ -19,6 +16,9 @@ from dowshinychat._chat_types import (
     TransformedMessage,
 )
 from dowshinychat._utils_types import MISSING
+from shiny import Session
+from shiny.module import ResolvedId
+from shiny.session import session_context
 
 # ----------------------------------------------------------------------
 # Helpers
@@ -530,6 +530,7 @@ def test_as_google_message():
 
 
 def test_as_langchain_message():
+    from dowshinychat._chat_provider_types import as_langchain_message
     from langchain_core.language_models.base import LanguageModelInput
     from langchain_core.language_models.base import (
         Sequence as LangchainSequence,  # pyright: ignore[reportPrivateImportUsage]
@@ -542,7 +543,6 @@ def test_as_langchain_message():
         MessageLikeRepresentation,
         SystemMessage,
     )
-    from dowshinychat._chat_provider_types import as_langchain_message
 
     assert BaseChatModel.invoke.__annotations__["input"] == "LanguageModelInput"
     assert BaseChatModel.stream.__annotations__["input"] == "LanguageModelInput"
@@ -566,6 +566,7 @@ def test_as_langchain_message():
 
 
 def test_as_openai_message():
+    from dowshinychat._chat_provider_types import as_openai_message
     from openai.resources.chat.completions import AsyncCompletions, Completions
     from openai.types.chat import (
         ChatCompletionAssistantMessageParam,
@@ -573,7 +574,6 @@ def test_as_openai_message():
         ChatCompletionSystemMessageParam,
         ChatCompletionUserMessageParam,
     )
-    from dowshinychat._chat_provider_types import as_openai_message
 
     assert (
         Completions.create.__annotations__["messages"]
@@ -653,7 +653,7 @@ def test_custom_objects():
 
 
 def test_chat_ui_file_input():
-    from shinychat import chat_ui
+    from dowshinychat import chat_ui
 
     tag = chat_ui("test_chat", file_input=True)
     html = str(tag)
@@ -661,7 +661,7 @@ def test_chat_ui_file_input():
 
 
 def test_chat_ui_slash_commands():
-    from shinychat import chat_ui
+    from dowshinychat import chat_ui
 
     commands = [
         {"name": "clear", "description": "Clear chat", "type": "client"},
@@ -674,7 +674,7 @@ def test_chat_ui_slash_commands():
 
 
 def test_chat_ui_audio_input():
-    from shinychat import chat_ui
+    from dowshinychat import chat_ui
 
     tag = chat_ui("test_chat", audio_input=True)
     html = str(tag)
@@ -686,7 +686,7 @@ def test_chat_ui_audio_input():
 
 
 def test_chat_ui_message_actions():
-    from shinychat import chat_ui
+    from dowshinychat import chat_ui
 
     tag = chat_ui("test_chat", message_actions=True)
     html = str(tag)
@@ -698,7 +698,7 @@ def test_chat_ui_message_actions():
 
 
 def test_chat_ui_defaults_no_extra_attrs():
-    from shinychat import chat_ui
+    from dowshinychat import chat_ui
 
     tag = chat_ui("test_chat")
     html = str(tag)
