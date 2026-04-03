@@ -1031,7 +1031,9 @@ class Chat:
             return
 
         content = message.content_client
-        content_type: ContentType = "html" if isinstance(content, HTML) else "markdown"
+        content_type: ContentType = (
+            "html" if isinstance(content, HTML) else "markdown"
+        )
 
         # Register deps with the session and get the dictionary format
         # for client-side rendering
@@ -1696,7 +1698,10 @@ class ChatExpress(Chat):
         audio_input: bool | Literal["transcribe", "raw"] = False,
         file_input: bool = False,
         slash_commands: list[dict[str, str]] | None = None,
-        message_actions: bool | Literal["all", "none"] | Sequence[str] | None = None,
+        message_actions: bool
+        | Literal["all", "none"]
+        | Sequence[str]
+        | None = None,
         **kwargs: TagAttrValue,
     ) -> Tag:
         """
@@ -1817,7 +1822,10 @@ def chat_ui(
     audio_input: bool | Literal["transcribe", "raw"] = False,
     file_input: bool = False,
     slash_commands: list[dict[str, str]] | None = None,
-    message_actions: bool | Literal["all", "none"] | Sequence[str] | None = None,
+    message_actions: bool
+    | Literal["all", "none"]
+    | Sequence[str]
+    | None = None,
     **kwargs: TagAttrValue,
 ) -> Tag:
     """

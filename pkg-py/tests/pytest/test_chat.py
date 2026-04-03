@@ -286,7 +286,9 @@ def test_google_multimodal_normalization():
     c = types.Content(
         parts=[
             types.Part(text="Here is an image:"),
-            types.Part(inline_data=types.Blob(mime_type="image/png", data=b"AAAA")),
+            types.Part(
+                inline_data=types.Blob(mime_type="image/png", data=b"AAAA")
+            ),
             types.Part(text=" described above."),
         ],
         role="model",
@@ -519,7 +521,9 @@ def test_as_google_message():
     from google.genai.models import Models
 
     contents_annotation = (
-        inspect.signature(Models.generate_content).parameters["contents"].annotation
+        inspect.signature(Models.generate_content)
+        .parameters["contents"]
+        .annotation
     )
     assert is_type_in_union(types.Content, contents_annotation)
 

@@ -7,15 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-02
+
+### New features
+
+* Migrated chat UI from Lit web components to React for improved performance and extensibility. (#181)
+
+* Added `footer` parameter to `ToolResultDisplay` for displaying custom HTML content below the tool result card body. (#178)
+
+* Tool result cards now support a fullscreen toggle. Set `full_screen=True` in `ToolResultDisplay()` to add a button that expands the card to fill the viewport. Press `Escape`, click the backdrop, or use the close button to exit fullscreen. (#179)
+
 ### Improvements
 
 * Migrated Google provider from the deprecated `google-generativeai` SDK to `google-genai`. (#174)
 
-### New features
+### Bug fixes
 
-* Added `footer` parameter to `ToolResultDisplay` for displaying custom HTML content below the tool result card body. (#178)
+* Fixed window resize dispatch on tool card collapse/expand. (#180)
 
-* Tool result cards now support a fullscreen toggle. Set `full_screen=True` in `ToolResultDisplay()` to add a button that expands the card to fill the viewport. Press `Escape`, click the backdrop, or use the close button to exit fullscreen.
+* Fixed `full_screen` passthrough for R tool result cards. (#183)
+
+* Resolved pyright errors from google-genai SDK migration. (#182)
 
 ## [0.2.9] - 2026-02-09
 

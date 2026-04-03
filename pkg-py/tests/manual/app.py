@@ -135,7 +135,7 @@ and some ***bold italic*** text for good measure.
             "@dataclass\n"
             "class ChatMessage:\n"
             '    role: str = "assistant"\n'
-            "    content: str = \"\"\n\n"
+            '    content: str = ""\n\n'
             "async def stream_response(messages: list[ChatMessage]) -> str:\n"
             '    result = ""\n'
             "    for msg in messages:\n"
@@ -167,7 +167,10 @@ and some ***bold italic*** text for good measure.
         await chat.append_message(html_content)
 
     elif keyword == "long":
-        lines = [f"Line {i}: " + "lorem ipsum dolor sit amet " * 3 for i in range(1, 51)]
+        lines = [
+            f"Line {i}: " + "lorem ipsum dolor sit amet " * 3
+            for i in range(1, 51)
+        ]
 
         async def long_stream():
             for line in lines:
@@ -183,7 +186,7 @@ and some ***bold italic*** text for good measure.
             '<path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.93-9.412-1 4.705'
             "c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416"
             "c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468"
-            'c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287z'
+            "c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287z"
             'M8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2"/>'
             "</svg>"
         )
@@ -193,7 +196,9 @@ and some ***bold italic*** text for good measure.
         )
 
     elif keyword == "error":
-        raise ValueError("This is a test error to verify error handling in the chat UI.")
+        raise ValueError(
+            "This is a test error to verify error handling in the chat UI."
+        )
 
     else:
         await chat.append_message(f"You said: {user_input}")

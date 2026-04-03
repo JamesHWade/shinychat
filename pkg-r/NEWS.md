@@ -1,4 +1,6 @@
-# dowshinychat (development version)
+# dowshinychat 0.4.0
+
+* Migrated chat UI from Lit web components to React for improved performance and extensibility.
 
 * Added `audio_input` parameter to `chat_ui()` for voice input. Set to `"transcribe"` to use the browser's Web Speech API for speech-to-text, or `"raw"` to capture audio and send it to the server as a base64-encoded blob (for use with multimodal models like GPT-4o or Gemini).
 
@@ -8,11 +10,13 @@
 
 * Tool result cards now support a fullscreen toggle. Set `full_screen = TRUE` in the `display` list (or set `res$full_screen <- NA` in a custom `contents_shinychat()` method) to add a button that expands the card to fill the viewport. Press `Escape`, click the backdrop, or use the close button to exit fullscreen.
 
-* Added `footer` field to `ToolResultDisplay` for displaying custom HTML content below the tool result card body. (#178)
-
-* Tool result cards now support a fullscreen toggle. Set `full_screen = TRUE` in the `display` list (or set `res$full_screen <- NA` in a custom `contents_shinychat()` method) to add a button that expands the card to fill the viewport. Press `Escape`, click the backdrop, or use the close button to exit fullscreen.
+* Added `chat_update_slash_commands()` for dynamically updating slash commands at runtime.
 
 * Fixed an issue where user chat messages would display the default assistant icon. (#162)
+
+* Fixed window resize dispatch on tool card collapse/expand. (#180)
+
+* Fixed `full_screen` passthrough for R tool result cards. (#183)
 
 # dowshinychat 0.3.0
 

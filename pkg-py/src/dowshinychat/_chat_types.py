@@ -103,6 +103,7 @@ class ShinyChatEnvelope(TypedDict):
 # Domain types
 # ---------------------------------------------------------------------------
 
+
 # TODO: content should probably be [{"type": "text", "content": "..."}, {"type": "image", ...}]
 # in order to support multiple content types...
 class ChatMessageDict(TypedDict):
@@ -161,4 +162,3 @@ class TransformedMessage:
             pre_transform_key=pre_transform_key,
             html_deps=message.html_deps,
         )
-
