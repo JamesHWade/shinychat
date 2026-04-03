@@ -14,6 +14,8 @@ chat_ui(
   fill = TRUE,
   icon_assistant = NULL,
   audio_input = FALSE,
+  file_input = FALSE,
+  slash_commands = NULL,
   message_actions = NULL
 )
 }
@@ -67,6 +69,23 @@ and \code{size} fields. Use this with multimodal LLMs that accept native audio
 (e.g., GPT-4o, Gemini).
 }}
 
+\item{file_input}{Enable file attachments via paste, drag-and-drop, and a
+file picker button. When \code{TRUE}, users can attach images, PDFs, and text
+files to their messages. Attached files are available as a separate reactive
+input at \code{input$ID_user_input_files}, which is a list of lists, each with
+\code{name} (string), \code{type} (MIME type string), and \code{data} (base64-encoded
+string) fields. This matches ellmer's \code{ContentImageInline} format.
+Defaults to \code{FALSE}.}
+
+\item{slash_commands}{A list of slash command definitions. Each command is a
+named list with \code{name} (string), \code{description} (string), \code{type}
+(\code{"client"} or \code{"server"}), and optionally \code{client_action} (string, for
+client-side commands). When the user types \code{/} in the input, a dropdown
+appears with matching commands. Client commands execute immediately in the
+browser (e.g., \code{client_action = "clear_messages"}). Server commands send
+\code{"/commandname"} as user input. Commands can also be updated dynamically
+with \code{\link[=chat_update_slash_commands]{chat_update_slash_commands()}}.}
+
 \item{message_actions}{Controls which action buttons appear on assistant
 messages. Can be:
 \itemize{
@@ -90,23 +109,6 @@ To respond to user input, listen for \code{input$ID_user_input} (for example, if
 \code{id="my_chat"}, user input will be at \code{input$my_chat_user_input}), and use
 \code{\link[=chat_append]{chat_append()}} to append messages to the chat.
 }
-\section{Message action events}{
-When \code{message_actions} is enabled, clicking action buttons on messages will
-trigger the following inputs (replace \code{ID} with your chat ID):
-\itemize{
-\item \code{input$ID_message_copy} - Triggered when copy button is clicked.
-Contains \code{messageIndex} (int) and \code{content} (string).
-\item \code{input$ID_message_feedback} - Triggered when thumbs up/down is clicked.
-Contains \code{messageIndex}, \code{content}, and \code{feedback} ("positive" or "negative").
-\item \code{input$ID_message_regenerate} - Triggered when regenerate button is clicked.
-Contains \code{messageIndex} and \code{content}.
-\item \code{input$ID_message_share} - Triggered when share button is clicked.
-Contains \code{messageIndex} and \code{content}.
-}
-
-Use \code{observeEvent(input$my_chat_message_feedback, ...)} to respond to these events.
-}
-
 \examples{
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 library(shiny)

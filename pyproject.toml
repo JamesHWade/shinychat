@@ -50,6 +50,7 @@ test = [
     "tox-uv>=1",
 ]
 dev = [
+    "griffe<2",
     "quartodoc>=0.10.0",
     "ruff>=0.6.5",
     {include-group = "test"},
@@ -90,7 +91,7 @@ exclude = ["pkg-py/_dev"]
 testpaths = ["pkg-py/tests"]
 
 [tool.coverage.run]
-source = ["pkg-py/src/shinychat"]
+source = ["pkg-py/src/dowshinychat"]
 
 [tool.coverage.report]
 show_missing = true

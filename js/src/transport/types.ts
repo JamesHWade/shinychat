@@ -1,5 +1,4 @@
 import type { HtmlDep } from "rstudio-shiny/srcts/types/src/shiny/render"
-import type { SlashCommandDef } from "../chat/slash-commands"
 
 export type ContentType = "markdown" | "html" | "text"
 
@@ -32,7 +31,6 @@ export type ChatAction =
     }
   | { type: "remove_loading" }
   | { type: "hide_tool_request"; requestId: string }
-  | { type: "update_commands"; commands: SlashCommandDef[] }
 
 export type ShinyChatEnvelope = {
   id: string

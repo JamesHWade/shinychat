@@ -6,25 +6,15 @@ import type { ChatMessageData } from "./state"
 export const ChatMessages = memo(function ChatMessages({
   messages,
   iconAssistant,
-  messageActions,
-  chatId,
 }: {
   messages: ChatMessageData[]
   iconAssistant?: string
-  messageActions?: string
-  chatId: string
 }) {
   return (
     <>
-      {messages.map((msg, index) => (
+      {messages.map((msg) => (
         <MessageErrorBoundary key={msg.id}>
-          <ChatMessage
-            message={msg}
-            iconAssistant={iconAssistant}
-            messageActions={messageActions}
-            messageIndex={index}
-            chatId={chatId}
-          />
+          <ChatMessage message={msg} iconAssistant={iconAssistant} />
         </MessageErrorBoundary>
       ))}
     </>

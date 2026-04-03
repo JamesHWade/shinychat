@@ -1,9 +1,9 @@
 import ipyleaflet as ipyl  # pyright: ignore[reportMissingTypeStubs]
 import pandas as pd
 import plotly.express as px  # pyright: ignore[reportMissingTypeStubs]
+from dowshinychat.express import Chat
 from shiny import reactive, render
 from shiny.express import ui
-from dowshinychat.express import Chat
 from shinywidgets import render_plotly, render_widget
 
 ui.page_opts(

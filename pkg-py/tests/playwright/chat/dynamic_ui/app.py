@@ -1,5 +1,5 @@
-from shiny.express import render
 from dowshinychat.express import Chat
+from shiny.express import render
 
 chat = Chat(id="chat")
 

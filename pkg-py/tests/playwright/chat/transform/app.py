@@ -1,7 +1,7 @@
 from typing import Union
 
-from shiny.express import render, ui
 from dowshinychat.express import Chat
+from shiny.express import render, ui
 
 # Set some Shiny page options
 ui.page_opts(title="Hello Chat")

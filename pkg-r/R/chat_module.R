@@ -52,7 +52,7 @@
 #' @examplesIf interactive()
 #' library(shiny)
 #' library(bslib)
-#' library(shinychat)
+#' library(dowshinychat)
 #' library(ellmer)
 #'
 #' # Define a simple module
@@ -223,7 +223,7 @@ chat_tool_module <- function(
 #' @examplesIf interactive()
 #' library(shiny)
 #' library(bslib)
-#' library(shinychat)
+#' library(dowshinychat)
 #'
 #' counter_ui <- function(id) {
 #'   ns <- NS(id)

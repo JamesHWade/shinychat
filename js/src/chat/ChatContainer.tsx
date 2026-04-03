@@ -10,15 +10,9 @@ import { createPortal } from "react-dom"
 import { ChatMessages } from "./ChatMessages"
 import { ChatMessage } from "./ChatMessage"
 import { MessageErrorBoundary } from "./MessageErrorBoundary"
-import {
-  ChatInput,
-  type ChatInputHandle,
-  type AudioInputMode,
-} from "./ChatInput"
-import type { SlashCommandDef } from "./slash-commands"
+import { ChatInput, type ChatInputHandle } from "./ChatInput"
 import { ExternalLinkDialogComponent } from "./ExternalLinkDialog"
 import { useAutoScroll } from "../markdown/useAutoScroll"
-import { useChatDispatch } from "./context"
 import type { ChatMessageData } from "./state"
 import type { ChatTransport } from "../transport/types"
 
@@ -36,11 +30,6 @@ export interface ChatContainerProps {
   inputPlaceholder: string
   iconAssistant?: string
   inputId: string
-  elementId: string
-  audioInputMode?: AudioInputMode | null
-  fileInputEnabled?: boolean
-  commands?: SlashCommandDef[]
-  messageActions?: string
 }
 
 export type ChatContainerHandle = ChatInputHandle
@@ -57,11 +46,6 @@ export const ChatContainer = forwardRef<
     inputPlaceholder,
     iconAssistant,
     inputId,
-    elementId,
-    audioInputMode,
-    fileInputEnabled,
-    commands,
-    messageActions,
   },
   ref,
 ) {
@@ -72,9 +56,6 @@ export const ChatContainer = forwardRef<
   const [pendingUrl, setPendingUrl] = useState<string | null>(null)
   const pendingUrlRef = useRef<string | null>(null)
   pendingUrlRef.current = pendingUrl
-
-  const [isDragActive, setIsDragActive] = useState(false)
-  const dragCounterRef = useRef(0)
 
   const { containerRef: messagesRef, engageStickToBottom } = useAutoScroll({
     streaming: !!streamingMessage,
@@ -88,9 +69,6 @@ export const ChatContainer = forwardRef<
     },
     focus() {
       chatInputRef.current?.focus()
-    },
-    addFiles(files: File[]) {
-      chatInputRef.current?.addFiles(files)
     },
   }))
 
@@ -208,81 +186,6 @@ export const ChatContainer = forwardRef<
     setPendingUrl(null)
   }, [])
 
-  // Drag-and-drop handlers for the input area
-  const onDragEnter = useCallback(
-    (e: React.DragEvent<HTMLDivElement>): void => {
-      if (!fileInputEnabled) return
-      e.preventDefault()
-      dragCounterRef.current++
-      setIsDragActive(true)
-    },
-    [fileInputEnabled],
-  )
-
-  const onDragOver = useCallback(
-    (e: React.DragEvent<HTMLDivElement>): void => {
-      if (!fileInputEnabled) return
-      e.preventDefault()
-      e.dataTransfer.dropEffect = "copy"
-    },
-    [fileInputEnabled],
-  )
-
-  const onDragLeave = useCallback(
-    (e: React.DragEvent<HTMLDivElement>): void => {
-      if (!fileInputEnabled) return
-      e.preventDefault()
-      dragCounterRef.current--
-      if (dragCounterRef.current <= 0) {
-        dragCounterRef.current = 0
-        setIsDragActive(false)
-      }
-    },
-    [fileInputEnabled],
-  )
-
-  const onDrop = useCallback(
-    (e: React.DragEvent<HTMLDivElement>): void => {
-      if (!fileInputEnabled) return
-      e.preventDefault()
-      dragCounterRef.current = 0
-      setIsDragActive(false)
-
-      const files = Array.from(e.dataTransfer.files)
-      if (files.length > 0) {
-        chatInputRef.current?.addFiles(files)
-      }
-    },
-    [fileInputEnabled],
-  )
-
-  // Client-side action dispatch table for slash commands
-  const dispatch = useChatDispatch()
-  const CLIENT_ACTIONS: Record<string, () => void> = {
-    clear_messages: () => dispatch({ type: "clear" }),
-    focus_input: () => chatInputRef.current?.focus(),
-  }
-
-  const handleCommandExecute = useCallback(
-    (cmd: SlashCommandDef): void => {
-      if (cmd.type === "client" && cmd.client_action) {
-        const handler = CLIENT_ACTIONS[cmd.client_action]
-        if (handler) {
-          handler()
-        } else {
-          console.warn(`Unknown client action: ${cmd.client_action}`)
-        }
-      } else {
-        // Server round-trip: send the command as user input
-        dispatch({ type: "INPUT_SENT", content: `/${cmd.name}`, role: "user" })
-        transport.sendInput(inputId, `/${cmd.name}`)
-        engageStickToBottom()
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch, transport, inputId, engageStickToBottom],
-  )
-
   const isStreaming = !!streamingMessage
 
   // When a new non-streaming message arrives (e.g. append_message), re-engage
@@ -307,20 +210,12 @@ export const ChatContainer = forwardRef<
         onClick={onMessagesClick}
         onKeyDown={onSuggestionKeydown}
       >
-        <ChatMessages
-          messages={messages}
-          iconAssistant={iconAssistant}
-          messageActions={messageActions}
-          chatId={elementId}
-        />
+        <ChatMessages messages={messages} iconAssistant={iconAssistant} />
         {streamingMessage && (
           <MessageErrorBoundary key={streamingMessage.id}>
             <ChatMessage
               message={streamingMessage}
               iconAssistant={iconAssistant}
-              messageActions={messageActions}
-              messageIndex={messages.length}
-              chatId={elementId}
             />
           </MessageErrorBoundary>
         )}
@@ -331,11 +226,6 @@ export const ChatContainer = forwardRef<
           inputDisabled ? "shiny-chat-input disabled" : "shiny-chat-input"
         }
         onClick={onContainerClick}
-        onDragEnter={onDragEnter}
-        onDragOver={onDragOver}
-        onDragLeave={onDragLeave}
-        onDrop={onDrop}
-        data-drop-active={isDragActive ? "" : undefined}
       >
         <ChatInput
           ref={chatInputRef}
@@ -344,10 +234,6 @@ export const ChatContainer = forwardRef<
           disabled={inputDisabled}
           hasTopShadow={inputHasShadow}
           placeholder={inputPlaceholder}
-          audioInputMode={audioInputMode}
-          fileInputEnabled={fileInputEnabled}
-          commands={commands}
-          onCommandExecute={handleCommandExecute}
           onSend={engageStickToBottom}
         />
       </div>

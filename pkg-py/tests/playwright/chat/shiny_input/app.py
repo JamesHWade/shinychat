@@ -1,6 +1,6 @@
+from dowshinychat.express import Chat
 from shiny import reactive
 from shiny.express import input, ui
-from dowshinychat.express import Chat
 
 ui.page_opts(title="Testing input bindings in Chat", gap="3rem")
 

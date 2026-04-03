@@ -24,12 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Improved scroll to bottom behavior with tool requests/results. (#157)
 * Constrain images in markdown content with max-width: 100%. (#168)
 
-### New features
-
-* Added `audio_input` parameter to `chat_ui()` for voice input. Set to `"transcribe"` to use the browser's Web Speech API for speech-to-text, or `"raw"` to capture audio and send it to the server as a base64-encoded blob (for use with multimodal models like GPT-4o or Gemini).
-
-* Added `message_actions` parameter to `chat_ui()` for displaying action buttons (copy, thumbs up/down, regenerate, share) on assistant messages. Use `message_actions=True` to enable all actions, or pass a list like `["copy", "feedback"]` to enable specific actions. Decorators `@chat.on_message_feedback`, `@chat.on_message_copy`, `@chat.on_message_regenerate`, and `@chat.on_message_share` handle button click events.
-
 ### Maintenance
 
 * Fixed an issue where user chat messages would display the default assistant icon. (#162)

@@ -2,10 +2,10 @@ import uuid
 
 import ipywidgets
 from chatlas import ChatOpenAI, ContentToolResult
-from ipyleaflet import CircleMarker, Map
-from shiny.express import ui
 from dowshinychat.express import Chat
 from dowshinychat.types import ToolResultDisplay
+from ipyleaflet import CircleMarker, Map
+from shiny.express import ui
 from shinywidgets import output_widget, register_widget
 
 

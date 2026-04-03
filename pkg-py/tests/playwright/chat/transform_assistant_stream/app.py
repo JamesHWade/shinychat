@@ -1,6 +1,6 @@
 import shiny.express  # noqa: F401
-from shiny import render
 from dowshinychat.express import Chat
+from shiny import render
 
 chat = Chat(id="chat")
 chat.ui()

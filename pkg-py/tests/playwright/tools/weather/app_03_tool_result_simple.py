@@ -1,8 +1,8 @@
 import faicons
 from chatlas import ChatOpenAI, ContentToolResult
-from shiny.express import app_opts, ui
 from dowshinychat.express import Chat
 from dowshinychat.types import ToolResultDisplay
+from shiny.express import app_opts, ui
 
 from . import tools
 
