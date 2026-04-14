@@ -1,6 +1,6 @@
 Package: dowshinychat
 Title: Chat UI Component for 'shiny'
-Version: 0.4.0
+Version: 0.4.1
 Authors@R: c(
     person("Joe", "Cheng", , "joe@posit.co", role = "aut"),
     person("Carson", "Sievert", , "carson@posit.co", role = "aut"),

@@ -1,3 +1,7 @@
+# dowshinychat 0.4.1
+
+* Replaced custom auto-scroll with `use-stick-to-bottom` library for improved scroll behavior. (#195)
+
 # dowshinychat 0.4.0
 
 * Migrated chat UI from Lit web components to React for improved performance and extensibility.

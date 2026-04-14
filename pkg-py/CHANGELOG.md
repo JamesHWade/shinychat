@@ -7,9 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-04-14
+
 ### Bug fixes
 
 * Fixed bookmark serialization failure when a `ToolResultDisplay` contained `HTMLDependency` objects in its `html`, `icon`, or `footer` fields. (#188)
+
+* Fixed HTMLDependency objects not being re-sent on bookmark restore. (#191)
+
+### Improvements
+
+* Replaced custom auto-scroll with `use-stick-to-bottom` library for improved scroll behavior. (#195)
 
 ## [0.3.0] - 2026-04-02
 
