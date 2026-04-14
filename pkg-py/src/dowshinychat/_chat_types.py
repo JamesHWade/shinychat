@@ -63,6 +63,10 @@ class RemoveLoadingAction(TypedDict):
     type: Literal["remove_loading"]
 
 
+class RenderDepsAction(TypedDict):
+    type: Literal["render_deps"]
+
+
 class HideToolRequestAction(TypedDict):
     type: Literal["hide_tool_request"]
     requestId: str
@@ -88,6 +92,7 @@ ChatAction = Union[
     ClearAction,
     UpdateInputAction,
     RemoveLoadingAction,
+    RenderDepsAction,
     HideToolRequestAction,
     UpdateCommandsAction,
 ]

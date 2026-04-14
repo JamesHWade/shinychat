@@ -19,7 +19,7 @@ def test_scroll_to_bottom_on_send(page: Page, local_app: ShinyAppProc) -> None:
         "Message 19: padding to fill the chat area.", timeout=30_000
     )
 
-    messages_el = chat.loc_messages
+    messages_el = chat.loc_scroll_container
 
     # The chat should be scrollable with 20 messages in 400px
     is_scrollable = messages_el.evaluate(
